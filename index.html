@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Don Quixote | The Knight's Quest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --parchment: #f4e8d0;
+      --parchment-dark: #d4c4a0;
+      --ink: #2c1810;
+      --gold: #d4af37;
+      --gold-bright: #ffd700;
+      --red-seal: #8b0000;
+      --green-moss: #4a6741;
+      --blue-royal: #1e3a8a;
+      --shadow: rgba(44, 24, 16, 0.3);
+      --font-medieval: "MedievalSharp", cursive;
+      --font-elegant: "Cinzel", serif;
+      --font-body: "Crimson Text", serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--ink);
+      background: #1a0f08;
+      position: relative;
+    }
+
+    /* Medieval parchment texture background */
+    @keyframes paperTexture {
+      0%, 100% { opacity: 0.05; }
+      50% { opacity: 0.08; }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+        filter: blur(4px);
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+        filter: blur(0px);
+      }
+    }
+
+    @keyframes backdropFadeIn {
+      from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+      }
+      to {
+        opacity: 1;
+        backdrop-filter: blur(5px);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 10px var(--gold));
+      }
+      50% {
+        filter: drop-shadow(0 0 10px var(--gold-bright)) drop-shadow(0 0 20px var(--gold-bright));
+      }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    @keyframes unlock {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.1) rotate(-5deg); }
+      50% { transform: scale(1.2) rotate(5deg); }
+      75% { transform: scale(1.1) rotate(-5deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* Main container */
+    .game-world {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+        linear-gradient(to bottom, #1a0f08, #2c1810);
+    }
+
+    /* Medieval map background */
+    .map-canvas {
+      position: absolute;
+      inset: 0;
+      background:
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="noise"><feTurbulence baseFrequency="0.9" numOctaves="4" /></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.03"/></svg>'),
+        linear-gradient(to bottom, rgba(244, 232, 208, 0.05), rgba(212, 196, 160, 0.05));
+      z-index: 0;
+    }
+
+    /* Decorative corners */
+    .corner-decor {
+      position: fixed;
+      width: 150px;
+      height: 150px;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.4;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .corner-decor.tl {
+      top: 0;
+      left: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L0,100 L20,80 L20,20 L80,20 L100,0 Z" fill="%23d4af37" opacity="0.3"/><path d="M5,5 L5,90 L20,75 L20,20 L75,20 L90,5 Z" fill="none" stroke="%23d4af37" stroke-width="2"/></svg>');
+    }
+
+    .corner-decor.tr {
+      top: 0;
+      right: 0;
+      transform: scaleX(-1);
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L0,100 L20,80 L20,20 L80,20 L100,0 Z" fill="%23d4af37" opacity="0.3"/><path d="M5,5 L5,90 L20,75 L20,20 L75,20 L90,5 Z" fill="none" stroke="%23d4af37" stroke-width="2"/></svg>');
+    }
+
+    .corner-decor.bl {
+      bottom: 0;
+      left: 0;
+      transform: scaleY(-1);
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L0,100 L20,80 L20,20 L80,20 L100,0 Z" fill="%23d4af37" opacity="0.3"/><path d="M5,5 L5,90 L20,75 L20,20 L75,20 L90,5 Z" fill="none" stroke="%23d4af37" stroke-width="2"/></svg>');
+    }
+
+    .corner-decor.br {
+      bottom: 0;
+      right: 0;
+      transform: scale(-1);
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0,0 L0,100 L20,80 L20,20 L80,20 L100,0 Z" fill="%23d4af37" opacity="0.3"/><path d="M5,5 L5,90 L20,75 L20,20 L75,20 L90,5 Z" fill="none" stroke="%23d4af37" stroke-width="2"/></svg>');
+    }
+
+    /* Header - Medieval banner */
+    .royal-banner {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(600px, 90%);
+      padding: 15px 30px;
+      background:
+        linear-gradient(to bottom, var(--parchment) 0%, var(--parchment-dark) 100%);
+      border: 3px solid var(--gold);
+      border-top: none;
+      border-radius: 0 0 20px 20px;
+      box-shadow:
+        0 5px 15px var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      z-index: 50;
+      text-align: center;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    .royal-banner::before,
+    .royal-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+    }
+
+    .royal-banner::before {
+      left: 20px;
+      border-width: 20px 15px 0 15px;
+      border-color: var(--red-seal) transparent transparent transparent;
+    }
+
+    .royal-banner::after {
+      right: 20px;
+      border-width: 20px 15px 0 15px;
+      border-color: var(--red-seal) transparent transparent transparent;
+    }
+
+    .banner-title {
+      font-family: var(--font-medieval);
+      font-size: 2rem;
+      color: var(--red-seal);
+      text-shadow: 2px 2px 0 var(--gold);
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+
+    .banner-subtitle {
+      font-family: var(--font-elegant);
+      font-size: 0.9rem;
+      color: var(--ink);
+      font-style: italic;
+    }
+
+    /* Quest Log - Left sidebar */
+    .quest-scroll {
+      position: fixed;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 280px;
+      max-height: 70vh;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      box-shadow:
+        5px 5px 15px var(--shadow),
+        inset 0 0 20px rgba(212, 175, 55, 0.2);
+      padding: 20px;
+      z-index: 40;
+      overflow-y: auto;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    .quest-scroll::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="paper"><feTurbulence baseFrequency="0.04" numOctaves="5" /></filter><rect width="100" height="100" filter="url(%23paper)" opacity="0.03"/></svg>');
+      pointer-events: none;
+      border-radius: 10px;
+    }
+
+    .scroll-title {
+      font-family: var(--font-medieval);
+      font-size: 1.3rem;
+      color: var(--red-seal);
+      text-align: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--gold);
+    }
+
+    .quest-item {
+      margin-bottom: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.4);
+      border-left: 4px solid var(--green-moss);
+      border-radius: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .quest-item:hover {
+      transform: translateX(5px);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .quest-item.completed {
+      border-left-color: var(--gold);
+      opacity: 0.7;
+      text-decoration: line-through;
+    }
+
+    .quest-item.active {
+      border-left-color: var(--red-seal);
+      background: rgba(255, 215, 0, 0.2);
+      animation: glow 2s infinite;
+    }
+
+    .quest-icon {
+      display: inline-block;
+      margin-right: 8px;
+      font-size: 1.1rem;
+    }
+
+    /* Character Stats - Right sidebar */
+    .character-panel {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 280px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      box-shadow:
+        -5px 5px 15px var(--shadow),
+        inset 0 0 20px rgba(212, 175, 55, 0.2);
+      padding: 20px;
+      z-index: 40;
+      animation: slideUp 1s ease-out;
+    }
+
+    .character-portrait {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 15px;
+      border: 4px solid var(--gold);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, var(--parchment-dark) 0%, var(--ink) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      box-shadow:
+        0 5px 15px var(--shadow),
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .character-name {
+      font-family: var(--font-elegant);
+      font-size: 1.2rem;
+      text-align: center;
+      color: var(--ink);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .character-class {
+      font-family: var(--font-elegant);
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--gold);
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .stat-label {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .stat-value {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .xp-progress {
+      width: 100%;
+      height: 25px;
+      background: var(--ink);
+      border: 2px solid var(--gold);
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 10px 0;
+      position: relative;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright), var(--gold));
+      background-size: 200% 100%;
+      transition: width 0.5s ease;
+      animation: shimmer 2s linear infinite;
+      box-shadow: 0 0 10px var(--gold-bright);
+    }
+
+    .xp-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 0 3px black;
+      z-index: 1;
+    }
+
+    .achievements {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid var(--gold);
+    }
+
+    .achievement-title {
+      font-family: var(--font-medieval);
+      font-size: 1rem;
+      color: var(--red-seal);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .badge {
+      width: 50px;
+      height: 50px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: var(--parchment-dark);
+      cursor: help;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .badge:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 0 15px var(--gold-bright);
+    }
+
+    .badge.locked {
+      opacity: 0.3;
+      filter: grayscale(100%);
+    }
+
+    .badge.unlocked {
+      animation: unlock 0.6s ease;
+    }
+
+    .badge-tooltip {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: var(--parchment);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .badge:hover .badge-tooltip {
+      opacity: 1;
+    }
+
+    /* Map viewport */
+    .map-viewport {
+      position: absolute;
+      left: 320px;
+      right: 320px;
+      top: 120px;
+      bottom: 20px;
+      overflow: hidden;
+      border: 4px solid var(--gold);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(212,175,55,0.1)" stroke-width="1"/></pattern></defs><rect width="200" height="200" fill="url(%23grid)"/></svg>'),
+        linear-gradient(135deg, #2a1f10 0%, #3a2f1f 50%, #2c1f14 100%);
+      box-shadow:
+        inset 0 0 50px rgba(0, 0, 0, 0.6),
+        inset 0 4px 20px rgba(212, 175, 55, 0.1),
+        0 10px 40px var(--shadow);
+      z-index: 1;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: center;
+      padding: 20px;
+    }
+
+    /* Map zones */
+    .map-zone {
+      position: absolute;
+      width: 160px;
+      min-height: 120px;
+      padding: 18px;
+      background: linear-gradient(145deg, var(--parchment), var(--parchment-dark));
+      border: 4px solid var(--gold);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow:
+        0 8px 20px var(--shadow),
+        inset 0 2px 10px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+      transform: translateZ(0);
+      will-change: transform, box-shadow;
+      backface-visibility: hidden;
+    }
+
+    .map-zone::before {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      background: linear-gradient(135deg, transparent, var(--gold-bright), transparent);
+      border-radius: 15px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .map-zone:hover::before {
+      opacity: 0.5;
+    }
+
+    .map-zone:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow:
+        0 15px 30px var(--shadow),
+        0 0 30px var(--gold),
+        inset 0 0 20px rgba(212, 175, 55, 0.5);
+      z-index: 10;
+    }
+
+    .map-zone.locked {
+      background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+      border-color: #555;
+      cursor: not-allowed;
+      box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.5),
+        inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .map-zone.locked .zone-icon {
+      filter: grayscale(100%) brightness(0.6);
+      opacity: 0.4;
+    }
+
+    .map-zone.locked .zone-label,
+    .map-zone.locked .zone-subtitle {
+      color: #888;
+      opacity: 0.5;
+    }
+
+    .map-zone.locked:hover {
+      transform: none;
+      box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.5),
+        inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .map-zone.completed::after {
+      content: '✓';
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 35px;
+      height: 35px;
+      background: var(--green-moss);
+      color: white;
+      border: 3px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: 0 3px 10px var(--shadow);
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    .zone-icon {
+      font-size: 3rem;
+      filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.4));
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, filter;
+    }
+
+    .map-zone:hover:not(.locked) .zone-icon {
+      transform: scale(1.15) rotate(5deg);
+      filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.6));
+    }
+
+    .zone-label {
+      font-family: var(--font-elegant);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    }
+
+    .zone-subtitle {
+      font-size: 0.82rem;
+      color: var(--gold);
+      font-style: italic;
+      font-weight: 500;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .zone-lock {
+      font-size: 2.5rem;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.7;
+      filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.5));
+    }
+
+    /* Quest paths connecting zones */
+    .quest-path {
+      position: absolute;
+      height: 3px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      transform-origin: left center;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .quest-path.active {
+      animation: shimmer 2s linear infinite;
+      opacity: 1;
+    }
+
+    /* Modal for zone content */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      z-index: 60;
+      display: none;
+      will-change: opacity, backdrop-filter;
+    }
+
+    .modal-overlay.open {
+      display: block;
+      animation: backdropFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-scroll {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(900px, 90vw);
+      max-height: 85vh;
+      background: var(--parchment);
+      border: 4px solid var(--gold);
+      border-radius: 20px;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.9),
+        inset 0 0 30px rgba(212, 175, 55, 0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity, filter;
+      backface-visibility: hidden;
+    }
+
+    .modal-header {
+      background: linear-gradient(to bottom, var(--red-seal), #5a0000);
+      color: var(--parchment);
+      padding: 20px 30px;
+      border-bottom: 3px solid var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: var(--font-medieval);
+      font-size: 1.8rem;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--gold);
+      background: var(--parchment);
+      color: var(--ink);
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover {
+      background: var(--red-seal);
+      color: white;
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 30px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-body::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .modal-body::-webkit-scrollbar-track {
+      background: var(--parchment-dark);
+      border-radius: 5px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 5px;
+    }
+
+    .modal-body::-webkit-scrollbar-thumb:hover {
+      background: var(--gold-bright);
+    }
+
+    .content-section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-family: var(--font-medieval);
+      font-size: 1.5rem;
+      color: var(--red-seal);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--gold);
+    }
+
+    .content-text {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--ink);
+      text-align: justify;
+    }
+
+    .content-card {
+      background: rgba(255, 255, 255, 0.5);
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 5px 15px var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    .content-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px var(--shadow);
+    }
+
+    .card-title {
+      font-family: var(--font-elegant);
+      font-size: 1.2rem;
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .quest-challenge {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(139, 0, 0, 0.2));
+      border: 3px solid var(--gold);
+      border-radius: 15px;
+      padding: 25px;
+      margin: 25px 0;
+      text-align: center;
+    }
+
+    .challenge-title {
+      font-family: var(--font-medieval);
+      font-size: 1.4rem;
+      color: var(--red-seal);
+      margin-bottom: 15px;
+    }
+
+    .challenge-question {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .answer-options {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .answer-btn {
+      padding: 12px 20px;
+      background: var(--parchment);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .answer-btn:hover:not(:disabled) {
+      background: var(--gold);
+      transform: translateX(10px);
+      box-shadow: 0 5px 15px var(--shadow);
+    }
+
+    .answer-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .answer-btn.correct {
+      background: var(--green-moss);
+      color: white;
+      border-color: var(--green-moss);
+    }
+
+    .answer-btn.incorrect {
+      background: var(--red-seal);
+      color: white;
+      border-color: var(--red-seal);
+    }
+
+    .challenge-feedback {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .challenge-feedback.success {
+      background: rgba(74, 103, 65, 0.3);
+      color: var(--green-moss);
+      border: 2px solid var(--green-moss);
+    }
+
+    .challenge-feedback.error {
+      background: rgba(139, 0, 0, 0.3);
+      color: var(--red-seal);
+      border: 2px solid var(--red-seal);
+    }
+
+    .complete-zone-btn {
+      background: linear-gradient(to right, var(--gold), var(--gold-bright));
+      color: var(--ink);
+      border: 3px solid var(--gold);
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-family: var(--font-elegant);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      display: block;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .complete-zone-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px var(--gold);
+    }
+
+    .complete-zone-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* XP notification */
+    .xp-notification {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: var(--ink);
+      padding: 15px 30px;
+      border: 3px solid var(--gold-bright);
+      border-radius: 15px;
+      font-family: var(--font-elegant);
+      font-size: 1.2rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px var(--gold);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 70;
+      transition: all 0.5s ease;
+    }
+
+    .xp-notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive design */
+    @media (max-width: 1400px) {
+      .quest-scroll,
+      .character-panel {
+        width: 240px;
+      }
+
+      .map-viewport {
+        left: 260px;
+        right: 260px;
+      }
+
+      .map-zone {
+        width: 145px;
+        min-height: 90px;
+        padding: 14px;
+      }
+
+      .zone-icon {
+        font-size: 2.5rem;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .quest-scroll {
+        left: 10px;
+        width: 200px;
+        font-size: 0.85rem;
+      }
+
+      .character-panel {
+        right: 10px;
+        width: 200px;
+      }
+
+      .map-viewport {
+        left: 220px;
+        right: 220px;
+      }
+
+      .map-zone {
+        width: 130px;
+        min-height: 85px;
+        padding: 12px;
+      }
+
+      .zone-icon {
+        font-size: 2.2rem;
+      }
+
+      .zone-label {
+        font-size: 0.95rem;
+      }
+
+      .zone-subtitle {
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .quest-scroll,
+      .character-panel {
+        display: none;
+      }
+
+      .map-viewport {
+        left: 10px;
+        right: 10px;
+        top: 100px;
+      }
+
+      .royal-banner {
+        width: 95%;
+        padding: 10px 20px;
+      }
+
+      .banner-title {
+        font-size: 1.5rem;
+      }
+
+      .modal-scroll {
+        width: 95vw;
+        max-height: 90vh;
+      }
+
+      .modal-body {
+        padding: 20px;
+      }
+
+      .map-zone {
+        width: 120px;
+        min-height: 80px;
+        padding: 10px;
+      }
+
+      .zone-icon {
+        font-size: 2rem;
+      }
+
+      .zone-label {
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Loading screen */
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, #1a0f08, #2c1810);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-icon {
+      font-size: 5rem;
+      animation: float 2s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+
+    .loading-text {
+      font-family: var(--font-medieval);
+      font-size: 2rem;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 var(--red-seal);
+    }
+
+    .loading-bar {
+      width: 300px;
+      height: 20px;
+      background: var(--ink);
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright), var(--gold));
+      background-size: 200% 100%;
+      animation: shimmer 1.5s linear infinite;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-icon">⚔️</div>
+    <div class="loading-text">Loading Quest...</div>
+    <div class="loading-bar">
+      <div class="loading-progress" id="loadingProgress"></div>
+    </div>
+  </div>
+
+  <!-- Decorative corners -->
+  <div class="corner-decor tl"></div>
+  <div class="corner-decor tr"></div>
+  <div class="corner-decor bl"></div>
+  <div class="corner-decor br"></div>
+
+  <div class="game-world">
+    <div class="map-canvas"></div>
+
+    <!-- Royal Banner (Header) -->
+    <header class="royal-banner">
+      <h1 class="banner-title">The Knight's Quest</h1>
+      <p class="banner-subtitle">An Interactive Journey Through Don Quixote</p>
+    </header>
+
+    <!-- Quest Log (Left Sidebar) -->
+    <aside class="quest-scroll">
+      <h2 class="scroll-title">Quest Log</h2>
+      <div id="questList"></div>
+    </aside>
+
+    <!-- Character Panel (Right Sidebar) -->
+    <aside class="character-panel">
+      <div class="character-portrait" id="characterPortrait">⚔️</div>
+      <div class="character-name">Sir Reader</div>
+      <div class="character-class">Knight of La Mancha</div>
+
+      <div class="stat-row">
+        <span class="stat-label">Level:</span>
+        <span class="stat-value" id="playerLevel">1</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Zones:</span>
+        <span class="stat-value"><span id="zonesCompleted">0</span>/7</span>
+      </div>
+
+      <div class="xp-progress">
+        <div class="xp-text"><span id="currentXP">0</span>/<span id="maxXP">100</span> XP</div>
+        <div class="xp-fill" id="xpFill"></div>
+      </div>
+
+      <div class="achievements">
+        <h3 class="achievement-title">Achievements</h3>
+        <div class="badge-grid" id="badgeGrid"></div>
+      </div>
+    </aside>
+
+    <!-- Map Viewport -->
+    <main class="map-viewport">
+      <div class="map-container" id="mapContainer">
+        <!-- Zones will be dynamically added here -->
+      </div>
+    </main>
+
+    <!-- XP Notification -->
+    <div class="xp-notification" id="xpNotification">+50 XP</div>
+
+    <!-- Modal for Zone Content -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Zone Title</h2>
+          <button class="close-btn" id="closeModal">×</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Content will be dynamically loaded -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game State
+    const gameState = {
+      level: 1,
+      xp: 0,
+      xpToNextLevel: 100,
+      zonesCompleted: [],
+      badges: [],
+      quests: [],
+      answeredQuestions: []
+    };
+
+    // Zone Definitions with better visual layout
+    const zones = [
+      {
+        id: 'overview',
+        name: 'The Beginning',
+        subtitle: 'Story Overview',
+        icon: '📜',
+        position: { top: '2%', left: '26%' },
+        unlocked: true,
+        xpReward: 50,
+        questText: 'Discover the tale of Don Quixote'
+      },
+      {
+        id: 'author',
+        name: 'The Chronicler',
+        subtitle: 'Miguel de Cervantes',
+        icon: '✍️',
+        position: { top: '4%', left: '63%' },
+        unlocked: false,
+        requiredZone: 'overview',
+        xpReward: 50,
+        questText: 'Learn about the author\'s life'
+      },
+      {
+        id: 'themes',
+        name: 'The Philosophy',
+        subtitle: 'Themes & Symbols',
+        icon: '🎭',
+        position: { top: '38%', left: '13%' },
+        unlocked: false,
+        requiredZone: 'overview',
+        xpReward: 75,
+        questText: 'Explore deeper meanings'
+      },
+      {
+        id: 'characters',
+        name: 'The Fellowship',
+        subtitle: 'Characters',
+        icon: '👥',
+        position: { top: '38%', left: '46%' },
+        unlocked: false,
+        requiredZone: 'author',
+        xpReward: 75,
+        questText: 'Meet the cast of characters'
+      },
+      {
+        id: 'timeline',
+        name: 'The Chronicle',
+        subtitle: 'Historical Context',
+        icon: '⏳',
+        position: { top: '68%', left: '29%' },
+        unlocked: false,
+        requiredZone: 'themes',
+        xpReward: 50,
+        questText: 'Discover the historical setting'
+      },
+      {
+        id: 'impact',
+        name: 'The Legacy',
+        subtitle: 'Cultural Impact',
+        icon: '🌍',
+        position: { top: '70%', left: '62%' },
+        unlocked: false,
+        requiredZone: 'characters',
+        xpReward: 75,
+        questText: 'Understand the lasting influence'
+      },
+      {
+        id: 'final',
+        name: 'The Grand Quest',
+        subtitle: 'Final Challenge',
+        icon: '👑',
+        position: { top: '38%', left: '76%' },
+        unlocked: false,
+        requiredZone: ['impact', 'timeline'],
+        xpReward: 100,
+        questText: 'Complete your journey'
+      }
+    ];
+
+    // Badge Definitions
+    const badges = [
+      { id: 'first-step', name: 'First Steps', icon: '🥾', requirement: 'Complete first zone' },
+      { id: 'scholar', name: 'Scholar', icon: '📚', requirement: 'Complete 3 zones' },
+      { id: 'knight', name: 'True Knight', icon: '⚔️', requirement: 'Complete all zones' },
+      { id: 'quiz-master', name: 'Quiz Master', icon: '🧠', requirement: 'Answer 5 questions correctly' },
+      { id: 'level-5', name: 'Experienced', icon: '⭐', requirement: 'Reach level 5' },
+      { id: 'explorer', name: 'Explorer', icon: '🗺️', requirement: 'Visit all zones' },
+      { id: 'speedrun', name: 'Swift Reader', icon: '⚡', requirement: 'Complete in under 30 minutes' },
+      { id: 'perfectionist', name: 'Perfectionist', icon: '💎', requirement: 'Get all questions right' }
+    ];
+
+    // Quiz Questions
+    const quizQuestions = [
+      {
+        id: 'q1',
+        zone: 'overview',
+        question: 'What drives Don Quixote to become a knight-errant?',
+        options: [
+          'A desire for wealth and fame',
+          'Reading too many chivalric romances',
+          'A command from the king',
+          'A vision from God'
+        ],
+        correct: 1,
+        explanation: 'Don Quixote becomes so absorbed in chivalric romances that he loses touch with reality and decides to become a knight-errant himself.'
+      },
+      {
+        id: 'q2',
+        zone: 'overview',
+        question: 'Who is Sancho Panza?',
+        options: [
+          'Don Quixote\'s enemy',
+          'A noble lord',
+          'Don Quixote\'s squire',
+          'A damsel in distress'
+        ],
+        correct: 2,
+        explanation: 'Sancho Panza is a simple farmer who becomes Don Quixote\'s loyal squire, providing pragmatic counterpoint to his master\'s idealism.'
+      },
+      {
+        id: 'q3',
+        zone: 'author',
+        question: 'What happened to Cervantes at the Battle of Lepanto?',
+        options: [
+          'He was promoted to general',
+          'He lost the use of his left hand',
+          'He wrote Don Quixote',
+          'He met the king'
+        ],
+        correct: 1,
+        explanation: 'Cervantes was wounded at the Battle of Lepanto in 1571, losing the use of his left hand, which earned him the nickname "El Manco de Lepanto."'
+      },
+      {
+        id: 'q4',
+        zone: 'characters',
+        question: 'Who is Dulcinea del Toboso?',
+        options: [
+          'Don Quixote\'s sister',
+          'A real princess',
+          'An idealized peasant woman',
+          'Sancho\'s wife'
+        ],
+        correct: 2,
+        explanation: 'Dulcinea is actually a peasant woman (Aldonza Lorenzo) whom Don Quixote idealizes as a peerless lady. She never actually appears in the novel.'
+      },
+      {
+        id: 'q5',
+        zone: 'themes',
+        question: 'What do the windmills symbolize?',
+        options: [
+          'Real giants',
+          'The futility and nobility of fighting impossible battles',
+          'Modern technology',
+          'Spanish architecture'
+        ],
+        correct: 1,
+        explanation: 'Don Quixote\'s attack on windmills he perceives as giants represents both the futility and the nobility of fighting impossible battles.'
+      },
+      {
+        id: 'q6',
+        zone: 'timeline',
+        question: 'When was Part I of Don Quixote published?',
+        options: [
+          '1605',
+          '1515',
+          '1705',
+          '1555'
+        ],
+        correct: 0,
+        explanation: 'Part I was published in 1605 and became an immediate bestseller.'
+      },
+      {
+        id: 'q7',
+        zone: 'impact',
+        question: 'Why is Don Quixote considered the first modern novel?',
+        options: [
+          'It was the longest book ever written',
+          'It pioneered psychological realism and metafictional techniques',
+          'It was written in modern Spanish',
+          'It had pictures'
+        ],
+        correct: 1,
+        explanation: 'Don Quixote pioneered psychological realism, narrative self-consciousness, and moral complexity that became foundational to the novel genre.'
+      }
+    ];
+
+    // Zone Content
+    const zoneContent = {
+      overview: {
+        title: 'The Beginning',
+        sections: [
+          {
+            title: 'The Tale Begins',
+            content: `
+              <p class="content-text">
+                In a village of La Mancha, whose name I do not wish to recall, there lived not long ago a gentleman of the type wont to keep an unused lance, an old shield, a skinny old horse, and a greyhound for racing...
+              </p>
+              <div class="content-card">
+                <h3 class="card-title">The Plot</h3>
+                <p class="content-text">
+                  Alonso Quixano, an aging gentleman, becomes so absorbed in reading chivalric romances that he loses his grip on reality. Renaming himself <strong>Don Quixote de la Mancha</strong>, he sets out to revive chivalry, undo wrongs, and bring justice to the world. He recruits a simple farmer, Sancho Panza, as his squire, promising him the governorship of an island.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Together they embark on adventures where Don Quixote imagines inns as castles, windmills as giants, and flocks of sheep as armies. Despite constant failures and beatings, he maintains unwavering faith in his knightly ideals. In Part II, his fame precedes him, and nobles mock him with elaborate pranks. Eventually defeated by the Knight of the White Moon (actually his friend in disguise), Don Quixote returns home, renounces his fantasies, and dies peacefully as Alonso Quixano.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">The Significance</h3>
+                <p class="content-text">
+                  <em>Don Quixote</em> is widely regarded as the first modern novel. Cervantes pioneered narrative techniques that revolutionized literature: unreliable narration, metafictional commentary, psychological depth, and the interplay between reality and imagination. The novel asks profound questions: Is idealism preferable to cynical acceptance? What is the nature of madness? How do stories shape our reality?
+                </p>
+              </div>
+            `
+          }
+        ]
+      },
+      author: {
+        title: 'The Chronicler',
+        sections: [
+          {
+            title: 'Miguel de Cervantes Saavedra',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">A Life of Adventure</h3>
+                <p class="content-text">
+                  Miguel de Cervantes Saavedra (c. 1547–1616) lived a life as dramatic as any novel. Born in Alcalá de Henares, Spain, he became a soldier and fought heroically at the Battle of Lepanto (1571), where he was wounded and lost the use of his left hand. This injury earned him the nickname "El Manco de Lepanto" (The One-Handed Man of Lepanto).
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  After the battle, Cervantes was captured by Barbary pirates while sailing back to Spain and spent five years as a slave in Algiers. He made several daring escape attempts before finally being ransomed in 1580. These experiences of captivity, struggle, and perseverance would deeply influence his writing.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">The Struggling Writer</h3>
+                <p class="content-text">
+                  After his release, Cervantes struggled financially for years. He worked as a tax collector and commissary, jobs that brought him little respect and even landed him in prison briefly due to accounting irregularities. His early literary works met with modest success, but he persevered.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  When Part I of <em>Don Quixote</em> was published in 1605, it brought him immediate fame—though not the fortune he deserved. A spurious sequel published in 1614 by an impostor using the pseudonym "Avellaneda" angered Cervantes and motivated him to complete his own Part II, published in 1615. Many critics consider Part II superior to the first, with deeper characterization and more sophisticated metafictional techniques.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Cervantes died in Madrid on April 22, 1616—coincidentally the same date as William Shakespeare. Despite his struggles, he left behind a masterpiece that would influence world literature for centuries to come.
+                </p>
+              </div>
+            `
+          }
+        ]
+      },
+      characters: {
+        title: 'The Fellowship',
+        sections: [
+          {
+            title: 'Meet the Cast',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">🛡️ Don Quixote</h3>
+                <p class="content-text">
+                  The protagonist, an aging hidalgo (minor nobleman) who reinvents himself as a knight-errant. His real name is Alonso Quixano (or Quixada/Quesada—the text deliberately keeps this ambiguous). Through sheer force of imagination, he transforms the mundane into the marvelous. Windmills become giants, inns become castles, and a peasant woman becomes a noble lady.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Yet beneath the comedy lies genuine nobility. Don Quixote is committed to justice, honor, and helping the downtrodden. He embodies both the absurdity and the dignity of idealism. His character evolves throughout the novel—in Part II, he becomes somewhat more grounded, demonstrating the "Sanchification of Don Quixote."
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">👨‍🌾 Sancho Panza</h3>
+                <p class="content-text">
+                  A simple, illiterate farmer who becomes Don Quixote's squire. Lured by promises of becoming governor of an island, Sancho provides earthy, pragmatic counterpoint to his master's lofty visions. He speaks in proverbs (often mangled), representing folk wisdom that both complements and contradicts Don Quixote's bookish knowledge.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Despite his initial skepticism, Sancho develops genuine loyalty and affection for Don Quixote. He too evolves through their adventures—the "Quixotification of Sancho"—becoming more imaginative and idealistic. In Part II, he actually does govern an island (though it's a prank by the Duke and Duchess), and he governs wisely, demonstrating surprising wisdom and justice.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">💕 Dulcinea del Toboso</h3>
+                <p class="content-text">
+                  The lady of Don Quixote's dreams—literally. She's actually Aldonza Lorenzo, a peasant woman from the nearby village of El Toboso, whom Don Quixote has idealized into a peerless princess. Dulcinea never actually appears in the novel; she exists only in Don Quixote's imagination and the imaginations of those who play along with his delusions.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  She represents the power of idealization and the Platonic concept of perfect love. The famous scene where Sancho "enchants" Dulcinea—presenting a coarse peasant woman as the transformed lady—forces Don Quixote to choose between evidence and faith.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">👑 The Duke and Duchess</h3>
+                <p class="content-text">
+                  Wealthy aristocrats who appear in Part II. Having read Part I, they recognize Don Quixote and invite him to their estate. They then subject him and Sancho to elaborate, often cruel pranks for their entertainment. Their behavior exposes the cruelty that can hide behind cultivated manners and the way the powerful exploit the vulnerable for amusement.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Yet even as they mock him, Don Quixote maintains his dignity, making them appear more foolish than their victim. Their episodes demonstrate Cervantes's sophisticated social commentary and the novel's exploration of class dynamics.
+                </p>
+              </div>
+            `
+          }
+        ]
+      },
+      themes: {
+        title: 'The Philosophy',
+        sections: [
+          {
+            title: 'Core Themes',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">⚖️ Idealism vs. Reality</h3>
+                <p class="content-text">
+                  The central tension of the novel. Don Quixote's chivalric worldview constantly crashes against prosaic reality, yet the novel doesn't simply mock idealism. It asks: Is Don Quixote's "madness" preferable to cynical acceptance? Is there nobility in pursuing impossible dreams? The novel suggests that reality and idealism need each other—pure idealism leads to delusion, but pure realism leads to spiritual death.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🧠 The Nature of Madness</h3>
+                <p class="content-text">
+                  Is Don Quixote truly mad, or does he choose to see the world differently? The novel suggests that "madness" can reveal truths that "sanity" overlooks. Don Quixote sees nobility where others see only poverty, adventure where others see monotony. His delusions cause harm, yet they also inspire loyalty, provoke thought, and reveal hidden depths in others. The line between madness and wisdom becomes increasingly blurred.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">📚 The Power of Literature</h3>
+                <p class="content-text">
+                  Books literally transform Don Quixote's identity and reality. The novel constantly reflects on itself as a text, creating multiple layers of storytelling. Characters in Part II have read Part I. The "found manuscript" device (claiming the story comes from an Arabic historian, Cide Hamete Benengeli) raises questions about authorship, translation, and truth. Cervantes asks: How do stories shape our perception of reality? What is the relationship between fiction and truth?
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🎭 Identity and Transformation</h3>
+                <p class="content-text">
+                  Can we choose who we are? Alonso Quixano becomes Don Quixote through sheer will and imagination. Characters throughout the novel adopt disguises, play roles, and transform themselves. The "Sanchification of Don Quixote" and "Quixotification of Sancho" show how identity is fluid and relational—we shape and are shaped by those around us.
+                </p>
+              </div>
+            `
+          },
+          {
+            title: 'Key Symbols',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">🌀 The Windmills</h3>
+                <p class="content-text">
+                  Perhaps literature's most famous symbol. When Don Quixote attacks windmills he perceives as giants, he creates the eternal metaphor for "tilting at windmills"—fighting impossible or imaginary battles. Yet is the fight futile, or is there nobility in the attempt? The windmills represent the gap between perception and reality, and the courage (or folly) required to challenge the overwhelming.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🐴 Rocinante</h3>
+                <p class="content-text">
+                  Don Quixote's old, skinny horse whose name means "formerly a nag." Rocinante symbolizes the gap between the knight's grand self-image and humble reality. Yet by naming and treating an old workhorse as a noble steed, Don Quixote demonstrates imagination's transformative power. The horse becomes more than it was through the power of belief.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">⚱️ The Helmet of Mambrino</h3>
+                <p class="content-text">
+                  A barber's basin that Don Quixote insists is a legendary golden helmet. When others see both basin and helmet, they call it a "baciyelmo" (a portmanteau). This hybrid object embodies the novel's central ambiguity: Can something be two things at once? Is reality objective or constructed through perception? The helmet/basin becomes a perfect symbol for the coexistence of contradictory truths.
+                </p>
+              </div>
+            `
+          }
+        ]
+      },
+      timeline: {
+        title: 'The Chronicle',
+        sections: [
+          {
+            title: 'Historical Context & Publication',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">📅 1605 - Part I Published</h3>
+                <p class="content-text">
+                  <em>El ingenioso hidalgo don Quijote de la Mancha</em> is published in Madrid. It becomes an immediate bestseller, with unauthorized editions quickly appearing in Portugal and elsewhere. The novel captures the Spanish imagination and spreads rapidly through Europe.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🎭 The Spanish Golden Age</h3>
+                <p class="content-text">
+                  The novel appears during Spain's "Siglo de Oro" (Golden Age), when Spain was at the height of its imperial power yet showing signs of decline. The tension between chivalric ideals and mundane reality mirrors Spain's own situation—clinging to ideals of glory while confronting economic and political challenges.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  Cervantes wrote during the same era as Lope de Vega, Calderón de la Barca, and other masters of Spanish literature. This was a time of incredible artistic flowering even as Spain's political power began to wane.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">😠 1614 - The False Sequel</h3>
+                <p class="content-text">
+                  An unauthorized sequel appears under the pseudonym "Alonso Fernández de Avellaneda." This spurious continuation—which some scholars believe was written by Cervantes's literary rival Lope de Vega—portrays Don Quixote as more foolish and less noble. The fake sequel angers Cervantes and motivates him to complete his own Part II quickly.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">📖 1615 - Part II Published</h3>
+                <p class="content-text">
+                  Cervantes publishes <em>Segunda parte del ingenioso caballero don Quijote de la Mancha</em>. Widely considered superior to Part I, it features deeper characterization, more sophisticated metafictional techniques, and direct references to the false sequel. Characters in Part II have read Part I, creating fascinating levels of self-reference.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">💀 1616 - Cervantes Dies</h3>
+                <p class="content-text">
+                  Miguel de Cervantes dies in Madrid on April 22, 1616—the same date traditionally given for Shakespeare's death (though they died by different calendars). He dies knowing his work is successful but without the financial security it deserved.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🌍 Modern Legacy</h3>
+                <p class="content-text">
+                  <em>Don Quixote</em> becomes the second most-translated book in history (after the Bible). It influences countless writers from Fielding to Flaubert to Dostoevsky to Borges. "Quixotic" enters the English language. The image of the gaunt knight and rotund squire becomes one of literature's most iconic. Modern critics from Harold Bloom to Carlos Fuentes consider it the foundational text of modern fiction.
+                </p>
+              </div>
+            `
+          }
+        ]
+      },
+      impact: {
+        title: 'The Legacy',
+        sections: [
+          {
+            title: 'Influence on World Literature',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">📜 Birth of the Modern Novel</h3>
+                <p class="content-text">
+                  Critics from Lionel Trilling to Harold Bloom consider <em>Don Quixote</em> the first modern novel. Before Cervantes, prose fiction consisted mostly of romances, picaresque tales, and episodic adventures. Cervantes created something new: a work combining psychological realism, moral complexity, narrative self-consciousness, and sustained character development.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  The novel's innovations became templates still used today:
+                  <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>The unreliable narrator and multiple levels of storytelling</li>
+                    <li>Characters who evolve and change through experience</li>
+                    <li>Metafictional commentary (the novel commenting on itself)</li>
+                    <li>The interplay between reality and perception</li>
+                    <li>Social commentary wrapped in entertaining narrative</li>
+                  </ul>
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">✍️ Direct Literary Influence</h3>
+                <p class="content-text">
+                  Countless writers have acknowledged their debt to Cervantes:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                  <li><strong>Henry Fielding</strong> - <em>Joseph Andrews</em> (1742) was explicitly written in imitation of Cervantes's style</li>
+                  <li><strong>Laurence Sterne</strong> - <em>Tristram Shandy</em> (1759-67) borrowed Cervantes's metafictional techniques</li>
+                  <li><strong>Gustave Flaubert</strong> - <em>Madame Bovary</em> (1856) features a protagonist destroyed by excessive reading, echoing Don Quixote</li>
+                  <li><strong>Fyodor Dostoevsky</strong> - Called Don Quixote "the ultimate and most sublime product of human thought" and based Prince Myshkin in <em>The Idiot</em> on him</li>
+                  <li><strong>Jorge Luis Borges</strong> - Repeatedly analyzed and reimagined Don Quixote, calling it the foundation of modern fiction</li>
+                  <li><strong>Milan Kundera</strong> - Identified two branches of the novel's history: one descended from Don Quixote, one from Samuel Richardson</li>
+                </ul>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🎨 Cultural Icon</h3>
+                <p class="content-text">
+                  Beyond literature, Don Quixote has become a cultural icon:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                  <li>"Tilting at windmills" and "quixotic" have entered common parlance worldwide</li>
+                  <li>The image of the gaunt knight on his skinny horse has been depicted by Picasso, Dalí, Doré, and countless others</li>
+                  <li>The musical <em>Man of La Mancha</em> (1965) brought the story to Broadway, featuring the song "The Impossible Dream"</li>
+                  <li>Numerous films, operas, ballets, and adaptations in every medium</li>
+                  <li>The character represents the universal struggle between idealism and reality</li>
+                </ul>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">💭 Philosophical Resonance</h3>
+                <p class="content-text">
+                  Philosophers and theorists continue to find rich material in the novel:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                  <li><strong>Existentialists</strong> saw Don Quixote creating meaning through action</li>
+                  <li><strong>Postmodernists</strong> appreciated the novel's questions about reality, truth, and narrative</li>
+                  <li><strong>Literary theorists</strong> used it to explore authorship, interpretation, and reader response</li>
+                  <li><strong>Psychologists</strong> analyzed the nature of delusion, identity, and transformation</li>
+                </ul>
+                <p class="content-text" style="margin-top: 10px;">
+                  The novel's central questions remain urgent: How do we balance idealism with realism? What is the nature of madness? How do stories shape our reality? What does it mean to live authentically?
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">🏆 Critical Acclaim</h3>
+                <p class="content-text">
+                  <em>Don Quixote</em> consistently ranks among the greatest novels ever written:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                  <li>Frequently ranked #1 in polls of writers, critics, and scholars</li>
+                  <li>The second most-translated work in history (after the Bible)</li>
+                  <li>Over 500 editions published in Spanish alone</li>
+                  <li>Translated into more than 140 languages</li>
+                  <li>The most-studied text in Spanish literature</li>
+                </ul>
+              </div>
+            `
+          }
+        ]
+      },
+      final: {
+        title: 'The Grand Quest',
+        sections: [
+          {
+            title: 'Your Journey Complete',
+            content: `
+              <div class="content-card">
+                <h3 class="card-title">🎉 Congratulations, Noble Knight!</h3>
+                <p class="content-text">
+                  You have completed your quest through the world of Don Quixote! Like the Knight of La Mancha himself, you have journeyed through challenges, gained wisdom, and emerged transformed. You've explored the story's depths, met its memorable characters, grappled with its themes, and understood its lasting impact on world literature.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  You now understand why this 400-year-old novel remains relevant: its questions about reality and imagination, idealism and pragmatism, madness and wisdom continue to resonate. Don Quixote's quest to live by noble ideals in an ignoble world speaks to every generation.
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">📚 Further Reading</h3>
+                <p class="content-text">
+                  If Don Quixote has captured your imagination, consider:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                  <li>Reading the full novel (recommended translation: Edith Grossman, 2003)</li>
+                  <li>Exploring Cervantes's <em>Novelas ejemplares</em> (Exemplary Novels)</li>
+                  <li>Reading Harold Bloom's analysis in <em>The Western Canon</em></li>
+                  <li>Discovering novels influenced by Don Quixote: <em>Joseph Andrews</em>, <em>Tristram Shandy</em>, <em>Madame Bovary</em></li>
+                  <li>Watching film adaptations, especially Terry Gilliam's <em>The Man Who Killed Don Quixote</em></li>
+                  <li>Listening to the musical <em>Man of La Mancha</em></li>
+                </ul>
+              </div>
+              <div class="content-card">
+                <h3 class="card-title">💭 Reflection</h3>
+                <p class="content-text">
+                  Don Quixote's final words as Alonso Quixano were: "I was mad, but now I am sane." Yet readers have debated for centuries: Was his madness the problem, or was renouncing it the real tragedy? Perhaps we need both: the dreamer and the realist, Don Quixote and Sancho Panza, idealism and pragmatism.
+                </p>
+                <p class="content-text" style="margin-top: 10px;">
+                  As you return from this literary adventure, carry with you the Knight's courage to dream impossible dreams, tempered with Sancho's wisdom to keep both feet on the ground. And remember: "For me alone was Don Quixote born, and I for him; he knew how to act and I how to write; the two of us are one."
+                </p>
+              </div>
+            `
+          }
+        ]
+      }
+    };
+
+    // Initialize Game
+    function initGame() {
+      // Load saved game state
+      loadGameState();
+
+      // Initialize UI
+      updateUI();
+      renderMap();
+      renderQuests();
+      renderBadges();
+
+      // Show loading screen then fade out
+      let progress = 0;
+      const loadingInterval = setInterval(() => {
+        progress += 10;
+        document.getElementById('loadingProgress').style.width = progress + '%';
+
+        if (progress >= 100) {
+          clearInterval(loadingInterval);
+          setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+          }, 500);
+        }
+      }, 100);
+
+      // Event listeners
+      document.getElementById('closeModal').addEventListener('click', closeModal);
+      document.getElementById('modalOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'modalOverlay') closeModal();
+      });
+    }
+
+    // Update UI
+    function updateUI() {
+      document.getElementById('playerLevel').textContent = gameState.level;
+      document.getElementById('zonesCompleted').textContent = gameState.zonesCompleted.length;
+      document.getElementById('currentXP').textContent = gameState.xp;
+      document.getElementById('maxXP').textContent = gameState.xpToNextLevel;
+
+      const xpPercent = (gameState.xp / gameState.xpToNextLevel) * 100;
+      document.getElementById('xpFill').style.width = xpPercent + '%';
+
+      // Update portrait based on level
+      const portraits = ['⚔️', '🛡️', '👑', '⭐', '💎'];
+      const portraitIndex = Math.min(Math.floor(gameState.level / 2), portraits.length - 1);
+      document.getElementById('characterPortrait').textContent = portraits[portraitIndex];
+    }
+
+    // Render map zones
+    function renderMap() {
+      const container = document.getElementById('mapContainer');
+      container.innerHTML = '';
+
+      zones.forEach(zone => {
+        // Re-check if zone should be unlocked based on completed zones
+        const shouldBeUnlocked = isZoneUnlocked(zone);
+        if (shouldBeUnlocked && !zone.unlocked) {
+          zone.unlocked = true;
+        }
+
+        const zoneEl = document.createElement('div');
+        zoneEl.className = 'map-zone';
+        zoneEl.setAttribute('data-zone-id', zone.id);
+
+        if (gameState.zonesCompleted.includes(zone.id)) {
+          zoneEl.classList.add('completed');
+        }
+        if (!shouldBeUnlocked) {
+          zoneEl.classList.add('locked');
+        }
+
+        zoneEl.style.top = zone.position.top;
+        zoneEl.style.left = zone.position.left;
+
+        zoneEl.innerHTML = `
+          <div class="zone-icon">${zone.icon}</div>
+          <div class="zone-label">${zone.name}</div>
+          <div class="zone-subtitle">${zone.subtitle}</div>
+          ${!shouldBeUnlocked ? '<div class="zone-lock">🔒</div>' : ''}
+        `;
+
+        if (shouldBeUnlocked) {
+          zoneEl.addEventListener('click', () => openZone(zone));
+        }
+
+        container.appendChild(zoneEl);
+      });
+
+      // Draw connecting lines between zones
+      drawConnectionLines(container);
+    }
+
+    // Draw SVG lines connecting related zones
+    function drawConnectionLines(container) {
+      // Remove old SVG if it exists
+      const oldSvg = container.querySelector('.connection-svg');
+      if (oldSvg) oldSvg.remove();
+
+      // Create SVG overlay
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'connection-svg');
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '0';
+
+      // Define connections based on requirements
+      const connections = [
+        { from: 'overview', to: 'author' },
+        { from: 'overview', to: 'themes' },
+        { from: 'author', to: 'characters' },
+        { from: 'themes', to: 'timeline' },
+        { from: 'characters', to: 'impact' },
+        { from: 'timeline', to: 'final' },
+        { from: 'impact', to: 'final' }
+      ];
+
+      connections.forEach(conn => {
+        const fromZone = zones.find(z => z.id === conn.from);
+        const toZone = zones.find(z => z.id === conn.to);
+
+        if (fromZone && toZone) {
+          const containerRect = container.getBoundingClientRect();
+          const fromEl = container.querySelector(`[data-zone-id="${conn.from}"]`);
+          const toEl = container.querySelector(`[data-zone-id="${conn.to}"]`);
+
+          if (fromEl && toEl) {
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+
+            const x1 = fromRect.left - containerRect.left + fromRect.width / 2;
+            const y1 = fromRect.top - containerRect.top + fromRect.height / 2;
+            const x2 = toRect.left - containerRect.left + toRect.width / 2;
+            const y2 = toRect.top - containerRect.top + toRect.height / 2;
+
+            // Create curved path
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const curve = 30;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const pathData = `M ${x1} ${y1} Q ${midX} ${midY - curve} ${x2} ${y2}`;
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', 'rgba(212, 175, 55, 0.4)');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-dasharray', '8,8');
+
+            // Check if path should be highlighted (both zones completed)
+            if (gameState.zonesCompleted.includes(conn.from) &&
+                gameState.zonesCompleted.includes(conn.to)) {
+              path.setAttribute('stroke', 'rgba(212, 175, 55, 0.8)');
+              path.setAttribute('stroke-width', '4');
+            }
+
+            svg.appendChild(path);
+          }
+        }
+      });
+
+      container.insertBefore(svg, container.firstChild);
+    }
+
+    // Check if zone is unlocked
+    function isZoneUnlocked(zone) {
+      // Always unlocked if explicitly set
+      if (zone.unlocked) return true;
+
+      // No requirement means it's unlocked
+      if (!zone.requiredZone) return true;
+
+      // Check if requirements are met
+      if (Array.isArray(zone.requiredZone)) {
+        return zone.requiredZone.every(req => gameState.zonesCompleted.includes(req));
+      }
+      return gameState.zonesCompleted.includes(zone.requiredZone);
+    }
+
+    // Open zone modal
+    function openZone(zone) {
+      const modal = document.getElementById('modalOverlay');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      title.textContent = zone.name + ': ' + zone.subtitle;
+
+      // Build content
+      const content = zoneContent[zone.id];
+      let html = '';
+
+      content.sections.forEach(section => {
+        html += `<div class="content-section">`;
+        html += `<h2 class="section-title">${section.title}</h2>`;
+        html += section.content;
+        html += `</div>`;
+      });
+
+      // Add quiz if available
+      const zoneQuestions = quizQuestions.filter(q => q.zone === zone.id);
+      if (zoneQuestions.length > 0) {
+        html += createQuiz(zoneQuestions, zone.id);
+      }
+
+      // Add complete button if not completed
+      if (!gameState.zonesCompleted.includes(zone.id)) {
+        html += `
+          <button class="complete-zone-btn" onclick="completeZone('${zone.id}', ${zone.xpReward})">
+            Complete Zone (+${zone.xpReward} XP) ⚔️
+          </button>
+        `;
+      } else {
+        html += `
+          <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(74, 103, 65, 0.2); border: 2px solid var(--green-moss); border-radius: 10px; color: var(--green-moss); font-family: var(--font-elegant); font-size: 1.1rem;">
+            ✓ Zone Completed!
+          </div>
+        `;
+      }
+
+      body.innerHTML = html;
+      modal.classList.add('open');
+    }
+
+    // Create quiz HTML
+    function createQuiz(questions, zoneId) {
+      let html = '<div class="quest-challenge"><h3 class="challenge-title">⚔️ Knowledge Challenge</h3>';
+
+      questions.forEach((q, index) => {
+        const answered = gameState.answeredQuestions.includes(q.id);
+        html += `
+          <div class="quiz-item" id="quiz-${q.id}">
+            <p class="challenge-question">${index + 1}. ${q.question}</p>
+            <div class="answer-options" id="options-${q.id}">
+        `;
+
+        q.options.forEach((option, i) => {
+          html += `
+            <button class="answer-btn" onclick="answerQuestion('${q.id}', ${i}, ${q.correct})" ${answered ? 'disabled' : ''}>
+              ${option}
+            </button>
+          `;
+        });
+
+        html += `
+            </div>
+            <div id="feedback-${q.id}" class="challenge-feedback" style="display: none;"></div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      return html;
+    }
+
+    // Answer quiz question
+    window.answerQuestion = function(questionId, selected, correct) {
+      const question = quizQuestions.find(q => q.id === questionId);
+      const optionsDiv = document.getElementById(`options-${questionId}`);
+      const feedbackDiv = document.getElementById(`feedback-${questionId}`);
+      const buttons = optionsDiv.querySelectorAll('.answer-btn');
+
+      // Disable all buttons
+      buttons.forEach(btn => btn.disabled = true);
+
+      // Mark correct and incorrect
+      buttons[correct].classList.add('correct');
+      if (selected !== correct) {
+        buttons[selected].classList.add('incorrect');
+      }
+
+      // Show feedback
+      const isCorrect = selected === correct;
+      feedbackDiv.style.display = 'block';
+      feedbackDiv.className = 'challenge-feedback ' + (isCorrect ? 'success' : 'error');
+      feedbackDiv.innerHTML = `
+        ${isCorrect ? '✓ Correct!' : '✗ Incorrect.'} ${question.explanation}
+        ${isCorrect && !gameState.answeredQuestions.includes(questionId) ? '<br><strong>+25 XP</strong>' : ''}
+      `;
+
+      // Award XP if correct and not answered before
+      if (isCorrect && !gameState.answeredQuestions.includes(questionId)) {
+        gameState.answeredQuestions.push(questionId);
+        addXP(25);
+        checkAchievements();
+        saveGameState();
+      }
+    };
+
+    // Complete zone
+    window.completeZone = function(zoneId, xpReward) {
+      if (!gameState.zonesCompleted.includes(zoneId)) {
+        gameState.zonesCompleted.push(zoneId);
+        addXP(xpReward);
+
+        // Unlock next zones by setting their unlocked flag
+        zones.forEach(zone => {
+          if (zone.requiredZone === zoneId ||
+              (Array.isArray(zone.requiredZone) && zone.requiredZone.includes(zoneId))) {
+            zone.unlocked = true;
+          }
+        });
+
+        // Save first, then update UI
+        saveGameState();
+        checkAchievements();
+        updateUI();
+        renderMap();
+        renderQuests();
+
+        // Show completion message
+        showNotification(`Zone Complete! +${xpReward} XP`);
+
+        // Close modal after showing completion
+        setTimeout(() => {
+          closeModal();
+          // Force re-render after modal closes to ensure map updates
+          setTimeout(() => {
+            renderMap();
+          }, 100);
+        }, 1500);
+      }
+    };
+
+    // Add XP
+    function addXP(amount) {
+      gameState.xp += amount;
+
+      while (gameState.xp >= gameState.xpToNextLevel) {
+        gameState.xp -= gameState.xpToNextLevel;
+        gameState.level++;
+        gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5);
+        showNotification(`Level Up! Now Level ${gameState.level}`);
+      }
+
+      updateUI();
+    }
+
+    // Show notification
+    function showNotification(message) {
+      const notification = document.getElementById('xpNotification');
+      notification.textContent = message;
+      notification.classList.add('show');
+
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 2000);
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    // Render quests
+    function renderQuests() {
+      const questList = document.getElementById('questList');
+      const activeQuests = zones.filter(z =>
+        isZoneUnlocked(z) && !gameState.zonesCompleted.includes(z.id)
+      );
+      const completedQuests = zones.filter(z => gameState.zonesCompleted.includes(z.id));
+
+      let html = '';
+
+      if (activeQuests.length > 0) {
+        activeQuests.forEach(quest => {
+          html += `
+            <div class="quest-item active">
+              <span class="quest-icon">${quest.icon}</span>
+              <strong>${quest.name}</strong>: ${quest.questText}
+            </div>
+          `;
+        });
+      }
+
+      if (completedQuests.length > 0) {
+        completedQuests.forEach(quest => {
+          html += `
+            <div class="quest-item completed">
+              <span class="quest-icon">✓</span>
+              ${quest.name}
+            </div>
+          `;
+        });
+      }
+
+      if (activeQuests.length === 0 && completedQuests.length === zones.length) {
+        html = '<div class="quest-item active">🎉 All quests complete!</div>';
+      }
+
+      questList.innerHTML = html;
+    }
+
+    // Check and award achievements
+    function checkAchievements() {
+      const newBadges = [];
+
+      // First Steps
+      if (gameState.zonesCompleted.length >= 1 && !gameState.badges.includes('first-step')) {
+        newBadges.push('first-step');
+      }
+
+      // Scholar
+      if (gameState.zonesCompleted.length >= 3 && !gameState.badges.includes('scholar')) {
+        newBadges.push('scholar');
+      }
+
+      // True Knight
+      if (gameState.zonesCompleted.length >= zones.length && !gameState.badges.includes('knight')) {
+        newBadges.push('knight');
+      }
+
+      // Quiz Master
+      if (gameState.answeredQuestions.length >= 5 && !gameState.badges.includes('quiz-master')) {
+        newBadges.push('quiz-master');
+      }
+
+      // Level 5
+      if (gameState.level >= 5 && !gameState.badges.includes('level-5')) {
+        newBadges.push('level-5');
+      }
+
+      // Award new badges
+      if (newBadges.length > 0) {
+        gameState.badges.push(...newBadges);
+        newBadges.forEach(badgeId => {
+          const badge = badges.find(b => b.id === badgeId);
+          showNotification(`Achievement Unlocked: ${badge.name}!`);
+        });
+        renderBadges();
+        saveGameState();
+      }
+    }
+
+    // Render badges
+    function renderBadges() {
+      const grid = document.getElementById('badgeGrid');
+      let html = '';
+
+      badges.forEach(badge => {
+        const unlocked = gameState.badges.includes(badge.id);
+        html += `
+          <div class="badge ${unlocked ? 'unlocked' : 'locked'}">
+            ${badge.icon}
+            <div class="badge-tooltip">${badge.name}<br><small>${badge.requirement}</small></div>
+          </div>
+        `;
+      });
+
+      grid.innerHTML = html;
+    }
+
+    // Save/Load game state
+    function saveGameState() {
+      localStorage.setItem('donQuixoteGame', JSON.stringify(gameState));
+    }
+
+    function loadGameState() {
+      const saved = localStorage.getItem('donQuixoteGame');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        Object.assign(gameState, loaded);
+
+        // Unlock zones based on completed zones
+        zones.forEach(zone => {
+          if (isZoneUnlocked(zone)) {
+            zone.unlocked = true;
+          }
+        });
+      }
+    }
+
+    // Initialize when page loads
+    window.addEventListener('load', initGame);
+  </script>
+</body>
+</html>
