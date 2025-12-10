@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Don Quixote | Knight's Codex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-overlay: rgba(3,7,18,0.92);
+      --border-soft: #1f2937;
+      --accent: #facc15;
+      --accent-2: #38bdf8;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --success: #4ade80;
+      --font-body: "Merriweather", Georgia, "Times New Roman", serif;
+      --font-heading: "Orbitron", system-ui, sans-serif;
+      --font-ui: "Inter", system-ui, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text-main);
+      overflow: hidden;
+      background: #000;
+    }
+
+    @keyframes glow-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(56,189,248,0.55); }
+      70%  { box-shadow: 0 0 0 12px rgba(56,189,248,0); }
+      100% { box-shadow: 0 0 0 0 rgba(56,189,248,0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translate(-50%, -48%);
+        opacity: 0;
+        filter: blur(4px);
+      }
+      to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+        filter: blur(0px);
+      }
+    }
+
+    @keyframes backdropFadeIn {
+      from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+      }
+      to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+      }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Animated stars background */
+    .stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    /* ROOT MAP WRAPPER */
+    .map-root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #020617;
+    }
+
+    /* REALISTIC MAP BACKGROUND */
+    .map-background {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(15,23,42,0.4) 0, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(15,23,42,0.4) 0, transparent 40%),
+        url('maps.jpg') center/cover no-repeat;
+      filter: saturate(1.15) contrast(1.15) brightness(0.95);
+      z-index: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .map-background::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(2,6,23,0.3) 100%);
+      pointer-events: none;
+    }
+
+    /* Top HUD (logo + mini nav) floating over map */
+    .top-hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(3,7,18,0.95));
+      border: 1px solid rgba(31,41,55,0.95);
+      backdrop-filter: blur(16px);
+      z-index: 5;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .top-hud:hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.7);
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 20% 15%, #facc15 0, #f97316 25%, transparent 55%),
+        radial-gradient(circle at 80% 80%, #22d3ee 0, #0f172a 55%);
+      border: 1px solid rgba(148,163,184,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 20px rgba(250,204,21,0.5);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      transition: transform 0.3s ease;
+    }
+
+    .logo-icon:hover {
+      transform: scale(1.05);
+    }
+
+    .logo-text-main {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #facc15, #fde68a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-text-sub {
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .top-hud-buttons {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hud-icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .hud-icon-btn.small-label {
+      padding: 0 10px;
+      width: auto;
+      font-size: 0.76rem;
+      gap: 5px;
+    }
+
+    .hud-icon-btn:hover {
+      background: rgba(30,41,59,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      border-color: rgba(250,204,21,0.5);
+    }
+
+    .hud-icon-btn:active {
+      transform: translateY(0px);
+    }
+
+    /* PLAYER BAR OVER MAP (bottom center) */
+    .player-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(3,7,18,0.96));
+      border: 1px solid rgba(31,41,55,0.95);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+      backdrop-filter: blur(16px);
+      z-index: 5;
+      max-width: 95%;
+      transition: all 0.3s ease;
+    }
+
+    .player-bar:hover {
+      box-shadow: 0 12px 36px rgba(0,0,0,1);
+    }
+
+    .player-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 2px solid rgba(250,204,21,0.9);
+      background:
+        radial-gradient(circle at 25% 20%, #facc15 0, #fb923c 28%, transparent 54%),
+        radial-gradient(circle at 70% 80%, #38bdf8 0, #020617 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18px rgba(234,179,8,0.5);
+      font-size: 1.3rem;
+      animation: glow-pulse 3.5s infinite;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .player-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .player-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      font-family: var(--font-ui);
+    }
+
+    .player-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .player-class {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .hud-level-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .xp-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+      margin-top: 3px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .xp-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #facc15, #22c55e);
+      background-size: 200% 100%;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(34,197,94,0.6);
+      animation: shimmer 2s linear infinite;
+    }
+
+    .badges-inline {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin-top: 3px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge-pill {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.8);
+      background: rgba(15,23,42,0.95);
+      font-size: 0.68rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .badge-pill:hover {
+      transform: scale(1.05);
+      border-color: rgba(250,204,21,0.8);
+    }
+
+    /* MAIN MAP PLAYFIELD (full screen behind HUD) */
+    .map-playfield {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .map-layer {
+      position: absolute;
+      width: 160%;
+      height: 160%;
+      left: -30%;
+      top: -30%;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: center;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(15,23,42,0.45) 0, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(15,23,42,0.45) 0, transparent 50%);
+    }
+
+    /* ZONES: clickable islands / buildings */
+    .map-zone {
+      position: absolute;
+      padding: 7px 9px;
+      min-width: 110px;
+      border-radius: 16px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.97), rgba(3,7,18,1));
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-family: var(--font-ui);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.85);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .map-zone::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 18px;
+      padding: 2px;
+      background: linear-gradient(135deg, transparent, rgba(250,204,21,0.3), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .map-zone:hover::before {
+      opacity: 1;
+    }
+
+    .map-zone-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .map-zone-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .map-zone-label {
+      font-weight: 600;
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
+    }
+
+    .map-zone-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .map-zone:hover {
+      transform: translateY(-6px) scale(1.08);
+      border-color: rgba(250,204,21,0.95);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.95), 0 0 20px rgba(250,204,21,0.3);
+      background: radial-gradient(circle at top, rgba(30,64,175,0.75), rgba(3,7,18,1));
+    }
+
+    .map-zone.active {
+      border-color: rgba(56,189,248,0.95);
+      box-shadow: 0 0 20px rgba(56,189,248,0.8);
+    }
+
+    .map-zone.visited::after {
+      content: "\2713";
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #22c55e;
+      color: #022c22;
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(34,197,94,0.9);
+      font-weight: 700;
+      border: 2px solid rgba(2,6,23,0.8);
+    }
+
+    @media (max-width: 700px) {
+      .map-layer {
+        width: 140%;
+        height: 140%;
+        left: -20%;
+        top: -20%;
+      }
+      .map-zone {
+        font-size: 0.78rem;
+        min-width: 120px;
+        padding: 8px 10px;
+      }
+    }
+
+    /* ZONES VISITED LABEL */
+    .zone-progress-label {
+      position: absolute;
+      top: 60px;
+      right: 16px;
+      z-index: 5;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-family: var(--font-ui);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(3,7,18,0.95));
+      border: 1px solid rgba(31,41,55,0.9);
+      color: var(--text-muted);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .zone-progress-label:hover {
+      border-color: rgba(250,204,21,0.6);
+      color: var(--text-main);
+    }
+
+    /* XP Float Notification */
+    .xp-float {
+      position: absolute;
+      left: 50%;
+      bottom: 80px;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.8);
+      color: #bbf7d0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 6;
+      box-shadow: 0 0 16px rgba(34,197,94,0.6);
+    }
+
+    .xp-float.show {
+      opacity: 1;
+      transform: translate(-50%, -24px);
+    }
+
+    /* ZONE CONTENT MODAL */
+    .zone-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+    }
+
+    .zone-modal.open {
+      display: block;
+    }
+
+    .zone-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15,23,42,0.7), rgba(0,0,0,0.85));
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      animation: backdropFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .zone-modal-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(920px, 94vw);
+      max-height: 88vh;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.98), rgba(3,7,18,0.98));
+      border-radius: 20px;
+      border: 1px solid rgba(31,41,55,0.95);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .zone-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(31,41,55,0.95);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.5), transparent);
+      flex-shrink: 0;
+    }
+
+    .zone-modal-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      background: linear-gradient(90deg, #facc15, #fde68a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .zone-modal-sub {
+      font-family: var(--font-ui);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .zone-modal-header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .zone-modal-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.95);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      padding: 6px 11px;
+      font-size: 0.76rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(30,41,59,1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      border-color: rgba(250,204,21,0.6);
+    }
+
+    .btn-ghost:active {
+      transform: translateY(0px);
+    }
+
+    .zone-modal-body {
+      padding: 14px 18px 16px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+      max-height: calc(88vh - 80px);
+    }
+
+    /* Custom scrollbar */
+    .zone-modal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .zone-modal-body::-webkit-scrollbar-track {
+      background: rgba(15,23,42,0.5);
+      border-radius: 4px;
+    }
+
+    .zone-modal-body::-webkit-scrollbar-thumb {
+      background: rgba(148,163,184,0.5);
+      border-radius: 4px;
+    }
+
+    .zone-modal-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(148,163,184,0.7);
+    }
+
+    /* TAB SYSTEM */
+    .tab-container {
+      margin-bottom: 16px;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid rgba(31,41,55,0.8);
+      padding-bottom: 0;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 14px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      margin-bottom: -1px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(250,204,21,0.1);
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(250,204,21,0.1);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* SECTION STYLING */
+    main section {
+      display: none;
+      padding-top: 6px;
+    }
+
+    main section.active {
+      display: block;
+    }
+
+    h2 {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      border-left: 4px solid var(--accent);
+      padding-left: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    p {
+      font-size: 0.92rem;
+      color: var(--text-main);
+      line-height: 1.75;
+    }
+
+    .hint {
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.97), rgba(2,6,23,0.98));
+      padding: 14px 15px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background:
+        conic-gradient(from 180deg, transparent 0 35%, rgba(248,250,252,0.2) 40%, transparent 60%);
+      mix-blend-mode: soft-light;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      animation: spin 4s linear infinite;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+      border-color: rgba(250,204,21,0.8);
+    }
+
+    .card h3 {
+      font-family: var(--font-heading);
+      font-size: 0.92rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-right: 5px;
+      margin-top: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .tag:hover {
+      border-color: rgba(250,204,21,0.6);
+      color: var(--text-main);
+    }
+
+    .chip-row {
+      margin-top: 12px;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(34,197,94,0.7);
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      color: #bbf7d0;
+      background: rgba(22,163,74,0.15);
+      margin: 3px 5px 0 0;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      background: rgba(22,163,74,0.25);
+      transform: translateY(-2px);
+    }
+
+    .timeline-item {
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin-left: 6px;
+      margin-bottom: 14px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-item:hover {
+      border-left-color: #fde68a;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      left: -6.5px;
+      top: 3px;
+      box-shadow: 0 0 10px rgba(250,204,21,0.9);
+      transition: all 0.3s ease;
+    }
+
+    .timeline-item:hover::before {
+      transform: scale(1.3);
+      box-shadow: 0 0 16px rgba(250,204,21,1);
+    }
+
+    .timeline-year {
+      font-family: var(--font-heading);
+      font-size: 0.84rem;
+      color: #fde68a;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .quote-box {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(129,140,248,0.9);
+      background: radial-gradient(circle at top left, rgba(129,140,248,0.2), rgba(15,23,42,0.98));
+      font-size: 0.95rem;
+      line-height: 1.8;
+      box-shadow: 0 4px 16px rgba(129,140,248,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .quote-box:hover {
+      box-shadow: 0 6px 20px rgba(129,140,248,0.3);
+      transform: translateY(-2px);
+    }
+
+    .quote-meta {
+      margin-top: 10px;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      color: #c7d2fe;
+      font-style: italic;
+    }
+
+    .btn-primary {
+      margin-top: 12px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(129,140,248,0.9);
+      background: linear-gradient(90deg, #4f46e5, #22d3ee);
+      color: #f9fafb;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.9);
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(79,70,229,0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0px);
+    }
+
+    .btn-danger {
+      margin-top: 12px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(239,68,68,0.7);
+      background: rgba(239,68,68,0.15);
+      color: #fca5a5;
+      cursor: pointer;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239,68,68,0.25);
+      transform: translateY(-2px);
+    }
+
+    .quote-stats {
+      margin-top: 12px;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .quote-stats span {
+      margin-right: 14px;
+    }
+
+    .quiz-card {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 14px;
+      border: 1px solid rgba(45,212,191,0.8);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.97), rgba(2,6,23,1));
+      box-shadow: 0 4px 16px rgba(45,212,191,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .quiz-card:hover {
+      box-shadow: 0 6px 20px rgba(45,212,191,0.3);
+    }
+
+    .quiz-card h3 {
+      font-family: var(--font-heading);
+      font-size: 0.94rem;
+      margin-bottom: 8px;
+      color: #5ef2d9;
+    }
+
+    .quiz-q {
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quiz-option {
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.9);
+      background: rgba(15,23,42,0.95);
+      font-size: 0.8rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-ui);
+    }
+
+    .quiz-option:hover:not(:disabled) {
+      background: rgba(45,212,191,0.18);
+      transform: translateY(-2px);
+      border-color: rgba(45,212,191,0.6);
+    }
+
+    .quiz-option:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .quiz-option.correct-choice {
+      border-color: var(--success);
+      background: rgba(22,163,74,0.2);
+    }
+
+    .quiz-option.wrong-choice {
+      border-color: var(--danger);
+      background: rgba(248,113,113,0.15);
+    }
+
+    .quiz-feedback {
+      margin-top: 10px;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+
+    .quiz-feedback.good {
+      color: #bbf7d0;
+    }
+
+    .quiz-feedback.bad {
+      color: #fecaca;
+    }
+
+    .quiz-next-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(45,212,191,0.8);
+      background: rgba(45,212,191,0.2);
+      color: #5ef2d9;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: var(--font-ui);
+      transition: all 0.2s ease;
+    }
+
+    .quiz-next-btn:hover {
+      background: rgba(45,212,191,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* BIBLIOGRAPHY MODAL */
+    .bib-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      display: none;
+    }
+
+    .bib-modal.open {
+      display: block;
+    }
+
+    .bib-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15,23,42,0.8), rgba(0,0,0,0.9));
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      animation: backdropFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .bib-modal-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(700px, 92vw);
+      max-height: 80vh;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.99), rgba(3,7,18,0.99));
+      border-radius: 18px;
+      border: 1px solid rgba(31,41,55,0.95);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .bib-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(31,41,55,0.95);
+    }
+
+    .bib-modal-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .bib-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .bib-close-btn:hover {
+      background: rgba(239,68,68,0.2);
+      border-color: rgba(239,68,68,0.6);
+    }
+
+    .bib-modal-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .bib-section {
+      margin-bottom: 20px;
+    }
+
+    .bib-section h3 {
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      color: var(--accent-2);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .bib-entry {
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(31,41,55,0.8);
+      background: rgba(15,23,42,0.6);
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+
+    .bib-entry .author {
+      color: var(--text-main);
+    }
+
+    .bib-entry .title {
+      font-style: italic;
+      color: #c7d2fe;
+    }
+
+    .bib-entry .details {
+      color: var(--text-muted);
+    }
+
+    /* SETTINGS MODAL */
+    .settings-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      display: none;
+    }
+
+    .settings-modal.open {
+      display: block;
+    }
+
+    .settings-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15,23,42,0.8), rgba(0,0,0,0.9));
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      animation: backdropFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .settings-modal-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(450px, 90vw);
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.99), rgba(3,7,18,0.99));
+      border-radius: 18px;
+      border: 1px solid rgba(31,41,55,0.95);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.95);
+      overflow: hidden;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .settings-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(31,41,55,0.95);
+    }
+
+    .settings-modal-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .settings-modal-body {
+      padding: 18px 20px;
+    }
+
+    .settings-section {
+      margin-bottom: 16px;
+    }
+
+    .settings-section h4 {
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .settings-info {
+      font-family: var(--font-ui);
+      font-size: 0.84rem;
+      color: var(--text-main);
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(15,23,42,0.6);
+      border: 1px solid rgba(31,41,55,0.8);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      z-index: 3;
+      opacity: 0.6;
+      pointer-events: none;
+      padding: 0 12px;
+      transition: opacity 0.3s ease;
+    }
+
+    footer:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+      .top-hud {
+        flex-wrap: wrap;
+        row-gap: 6px;
+        padding: 6px 10px;
+      }
+      .top-hud-buttons {
+        justify-content: flex-end;
+      }
+      .zone-modal-panel {
+        width: 96vw;
+        max-height: 90vh;
+      }
+      .zone-modal-body {
+        max-height: calc(90vh - 80px);
+      }
+      .zone-modal-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .player-bar {
+        padding: 8px 10px;
+      }
+      .tab-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="map-root">
+  <div class="stars" id="stars"></div>
+  <div class="map-background"></div>
+
+  <!-- TOP HUD (logo + mini nav) -->
+  <header class="top-hud">
+    <div class="logo-wrap">
+      <div class="logo-icon">DQ</div>
+      <div>
+        <div class="logo-text-main">Knight's Codex</div>
+        <div class="logo-text-sub">Don Quixote · Map of Zones</div>
+      </div>
+    </div>
+
+    <div class="top-hud-buttons">
+      <button class="hud-icon-btn small-label" id="hudSources" title="Works Cited">
+        <span>📚</span><span>Sources</span>
+      </button>
+      <button class="hud-icon-btn" id="hudRecenter" title="Recenter map">🗺️</button>
+      <button class="hud-icon-btn small-label" id="hudBackToMap">
+        <span>🏠</span><span>World</span>
+      </button>
+      <button class="hud-icon-btn" id="hudSettings" title="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Zones visited label -->
+  <div class="zone-progress-label" id="sectionCountLabel">
+    0 zones visited
+  </div>
+
+  <!-- MAIN MAP PLAYFIELD -->
+  <div class="map-playfield">
+    <div class="map-layer" id="mapLayer">
+
+      <!-- Overview Zone -->
+      <button
+        class="map-zone"
+        data-zone="overview"
+        data-label="Story Zone · Overview"
+        data-zoom="1.4"
+        data-offset-x="-12"
+        data-offset-y="-8"
+        style="top: 33%; left: 22%;"
+      >
+        <span class="map-zone-icon">📜</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Overview</span>
+          <span class="map-zone-sub">Main quest</span>
+        </span>
+      </button>
+
+      <!-- Author Zone -->
+      <button
+        class="map-zone"
+        data-zone="author"
+        data-label="Author Zone · Miguel de Cervantes"
+        data-zoom="1.5"
+        data-offset-x="-18"
+        data-offset-y="-2"
+        style="top: 35%; left: 59%;"
+      >
+        <span class="map-zone-icon">✍️</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Author</span>
+          <span class="map-zone-sub">Creator lore</span>
+        </span>
+      </button>
+
+      <!-- Characters Zone -->
+      <button
+        class="map-zone"
+        data-zone="characters"
+        data-label="Party Zone · Characters"
+        data-zoom="1.5"
+        data-offset-x="8"
+        data-offset-y="-16"
+        style="top: 60%; left: 70%;"
+      >
+        <span class="map-zone-icon">🧑‍🤝‍🧑</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Characters</span>
+          <span class="map-zone-sub">Party roster</span>
+        </span>
+      </button>
+
+      <!-- Themes Zone -->
+      <button
+        class="map-zone"
+        data-zone="themes"
+        data-label="Theme Zone · Mechanics"
+        data-zoom="1.5"
+        data-offset-x="-4"
+        data-offset-y="10"
+        style="top: 62%; left: 34%;"
+      >
+        <span class="map-zone-icon">🎭</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Themes</span>
+          <span class="map-zone-sub">Game mechanics</span>
+        </span>
+      </button>
+
+      <!-- Timeline Zone -->
+      <button
+        class="map-zone"
+        data-zone="timeline"
+        data-label="Timeline Zone · Release Log"
+        data-zoom="1.45"
+        data-offset-x="12"
+        data-offset-y="-4"
+        style="top: 30%; left: 75%;"
+      >
+        <span class="map-zone-icon">⏳</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Timeline</span>
+          <span class="map-zone-sub">Release log</span>
+        </span>
+      </button>
+
+      <!-- Impact Zone -->
+      <button
+        class="map-zone"
+        data-zone="impact"
+        data-label="Impact Zone · Legacy"
+        data-zoom="1.5"
+        data-offset-x="-16"
+        data-offset-y="14"
+        style="top: 57%; left: 50%;"
+      >
+        <span class="map-zone-icon">🌍</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Impact</span>
+          <span class="map-zone-sub">Legacy zone</span>
+        </span>
+      </button>
+
+      <!-- Quote Quest Zone -->
+      <button
+        class="map-zone"
+        data-zone="quotes"
+        data-label="Quote Quest · Random Lines"
+        data-zoom="1.2"
+        data-offset-x="4"
+        data-offset-y="7"
+        style="top:39%; left: 43%;"
+      >
+        <span class="map-zone-icon">💬</span>
+        <span class="map-zone-text">
+          <span class="map-zone-label">Quote Quest</span>
+          <span class="map-zone-sub">XP farming</span>
+        </span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- PLAYER BAR -->
+  <div class="player-bar">
+    <div class="player-avatar">🛡️</div>
+    <div class="player-info">
+      <div class="player-name">Reader: Knight of La Mancha</div>
+      <div class="player-class">Class: Literary Adventurer</div>
+      <div class="hud-level-row">
+        <span>Level <span id="levelValue">1</span></span>
+        <span>XP <span id="xpValue">0</span>/<span id="xpMax">100</span></span>
+      </div>
+      <div class="xp-bar">
+        <div class="xp-fill" id="xpFill"></div>
+      </div>
+      <div class="badges-inline">
+        <span>Badges:</span>
+        <div id="badgeTray"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- XP Float Notification -->
+  <div class="xp-float" id="xpFloat">+5 XP</div>
+
+  <!-- ZONE CONTENT MODAL -->
+  <div class="zone-modal" id="zoneModal" aria-hidden="true">
+    <div class="zone-modal-backdrop"></div>
+    <div class="zone-modal-panel">
+      <div class="zone-modal-header">
+        <div class="zone-modal-header-left">
+          <div class="zone-modal-title" id="activeZoneLabel">World View</div>
+          <div class="zone-modal-sub">Tap a zone on the map to open its quest panel.</div>
+        </div>
+        <div class="zone-modal-actions">
+          <button class="btn-ghost" id="backToMap">
+            <span>🏠</span><span>Back to World</span>
+          </button>
+          <button class="btn-ghost" id="jumpOverview">
+            <span>▶</span><span>Story</span>
+          </button>
+          <button class="btn-ghost" id="jumpQuotes">
+            <span>🎲</span><span>Quiz</span>
+          </button>
+        </div>
+      </div>
+      <div class="zone-modal-body">
+        <main>
+          <!-- Overview Section with Tabs -->
+          <section id="overview" class="active">
+            <h2>Story Zone · Overview</h2>
+
+            <div class="tab-container">
+              <div class="tab-nav">
+                <button class="tab-btn active" data-tab="overview-summary">Summary</button>
+                <button class="tab-btn" data-tab="overview-analysis">Analysis</button>
+                <button class="tab-btn" data-tab="overview-context">Context</button>
+              </div>
+
+              <div class="tab-content active" id="overview-summary">
+                <p>
+                  <strong>Title:</strong> Don Quixote (El ingenioso hidalgo don Quijote de la Mancha)<br>
+                  <strong>Author:</strong> Miguel de Cervantes Saavedra<br>
+                  <strong>Genre:</strong> Novel; precursor to Romanticism and the modern novel<br>
+                  <strong>Setting:</strong> Early 17th-century Spain, during the Spanish Golden Age
+                </p>
+
+                <div class="card" style="margin-top: 14px;">
+                  <h3>Plot Summary</h3>
+                  <p>
+                    Alonso Quixano, an aging gentleman from La Mancha, becomes so absorbed in reading chivalric romances that he loses touch with reality. Renaming himself <em>Don Quixote de la Mancha</em>, he sets out on adventures with his peasant squire, Sancho Panza. He imagines inns as castles and windmills as giants, suffering many defeats while maintaining unwavering faith in his knightly ideals.
+                  </p>
+                  <p style="margin-top: 8px;">
+                    In the second part, Don Quixote's fame precedes him. Nobles invite him to their estates, often mocking him cruelly. He is eventually defeated by the Knight of the White Moon (a disguised friend), returns home, renounces his fantasies, and dies peacefully as Alonso Quixano.
+                  </p>
+                </div>
+              </div>
+
+              <div class="tab-content" id="overview-analysis">
+                <div class="card">
+                  <h3>Literary Significance</h3>
+                  <p>
+                    <em>Don Quixote</em> is widely considered the first modern novel. Cervantes pioneered techniques that would become foundational to the genre: unreliable narration, metafictional commentary, psychological depth, and the interplay between reality and imagination.
+                  </p>
+                </div>
+
+                <div class="card" style="margin-top: 12px;">
+                  <h3>Narrative Structure</h3>
+                  <p>
+                    The novel employs a complex frame narrative. Cervantes presents himself as merely editing a manuscript by the fictional historian Cide Hamete Benengeli. This device allows for ironic distance and commentary on the nature of truth in storytelling.
+                  </p>
+                </div>
+
+                <div class="card" style="margin-top: 12px;">
+                  <h3>Character Development</h3>
+                  <p>
+                    Unlike flat characters in earlier romances, Don Quixote and Sancho evolve throughout the narrative. The "Sanchification of Don Quixote" and "Quixotification of Sancho" demonstrate how the two influence each other, blending idealism with pragmatism.
+                  </p>
+                </div>
+              </div>
+
+              <div class="tab-content" id="overview-context">
+                <div class="card">
+                  <h3>Historical Background</h3>
+                  <p>
+                    Published during Spain's "Golden Age" (Siglo de Oro), the novel appeared when Spain was at the height of its imperial power yet showing signs of decline. The contrast between chivalric ideals and mundane reality mirrors Spain's situation.
+                  </p>
+                </div>
+
+                <div class="card" style="margin-top: 12px;">
+                  <h3>Literary Parody</h3>
+                  <p>
+                    Cervantes satirizes the popular chivalric romances of his time, particularly <em>Amadis de Gaula</em>. These fantastical tales were immensely popular but increasingly seen as unrealistic and potentially harmful to readers who took them too seriously.
+                  </p>
+                </div>
+
+                <div class="card" style="margin-top: 12px;">
+                  <h3>Publication History</h3>
+                  <p>
+                    Part I appeared in 1605 and was immediately successful. In 1614, an unauthorized sequel by "Avellaneda" prompted Cervantes to write and publish his own Part II in 1615, which many consider superior to the first.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="chip-row">
+              <span class="chip">Idealism vs. Reality</span>
+              <span class="chip">Power of Books</span>
+              <span class="chip">Identity</span>
+              <span class="chip">Humor and Pathos</span>
+            </div>
+          </section>
+
+          <!-- Author Section -->
+          <section id="author">
+            <h2>Author Zone · Miguel de Cervantes</h2>
+            <p>
+              Miguel de Cervantes Saavedra (c. 1547–1616) led a life as adventurous as any fiction. Born in Alcalá de Henares, Spain, he became a soldier, fighting heroically at the Battle of Lepanto (1571) where he was wounded, losing the use of his left hand. Captured by Barbary pirates, he spent five years as a slave in Algiers before being ransomed.
+            </p>
+            <p style="margin-top: 8px;">
+              After his release, Cervantes struggled financially, working as a tax collector and commissary. His early literary works met with modest success, but <em>Don Quixote</em> brought him fame (though not fortune). He died in Madrid on April 22, 1616, the same date as Shakespeare.
+            </p>
+
+            <div class="grid" style="margin-top: 14px;">
+              <div class="card">
+                <h3>Biographical Data</h3>
+                <ul style="padding-left: 18px; margin-top: 6px; font-size: 0.88rem; line-height: 1.7;">
+                  <li>Born: c. September 29, 1547, Alcalá de Henares</li>
+                  <li>Died: April 22, 1616, Madrid</li>
+                  <li>Occupation: Novelist, poet, playwright</li>
+                  <li>Notable Works: <em>Don Quixote</em>, <em>Novelas ejemplares</em>, <em>La Galatea</em></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>Life and Art</h3>
+                <p>
+                  Cervantes's experiences—military service, captivity, poverty, and disappointment—infuse his work with authenticity. Don Quixote's stubborn dignity in the face of defeat mirrors Cervantes's own perseverance through hardship.
+                </p>
+                <p class="hint">The novel's sympathy for outcasts and underdogs reflects the author's own marginalized position in Spanish society.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Characters Section -->
+          <section id="characters">
+            <h2>Party Zone · Characters</h2>
+            <p class="hint">The novel's enduring appeal lies in its rich characterization. Each figure represents different aspects of human nature.</p>
+            <div class="grid">
+              <div class="card">
+                <h3>Don Quixote</h3>
+                <p>
+                  An aging hidalgo who reinvents himself as a knight-errant. His delusions transform the mundane into the marvelous, yet his commitment to justice and honor is genuine. He embodies both the nobility and the absurdity of idealism.
+                </p>
+                <div class="tag">Role: Idealist Protagonist</div>
+                <div class="tag">Archetype: The Dreamer</div>
+              </div>
+
+              <div class="card">
+                <h3>Sancho Panza</h3>
+                <p>
+                  A simple farmer lured by promises of an island governorship. Practical, earthy, and full of proverbs, Sancho provides counterpoint to his master's lofty visions. Yet he too is transformed by their adventures.
+                </p>
+                <div class="tag">Role: Loyal Squire</div>
+                <div class="tag">Archetype: The Realist</div>
+              </div>
+
+              <div class="card">
+                <h3>Dulcinea del Toboso</h3>
+                <p>
+                  A peasant woman (Aldonza Lorenzo) whom Don Quixote idealizes as a peerless lady. She never actually appears in the novel, existing only in the knight's imagination—a symbol of the power of idealization.
+                </p>
+                <div class="tag">Role: Beloved Ideal</div>
+                <div class="tag">Symbol: Platonic Love</div>
+              </div>
+
+              <div class="card">
+                <h3>The Duke and Duchess</h3>
+                <p>
+                  Wealthy nobles who have read Part I and invite Don Quixote to their estate. Their elaborate pranks expose both the cruelty of the upper class and the dignity that Don Quixote maintains even when mocked.
+                </p>
+                <div class="tag">Role: Antagonists</div>
+                <div class="tag">Theme: Class Commentary</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Themes Section with Tabs -->
+          <section id="themes">
+            <h2>Theme Zone · Major Themes</h2>
+
+            <div class="tab-container">
+              <div class="tab-nav">
+                <button class="tab-btn active" data-tab="themes-core">Core Themes</button>
+                <button class="tab-btn" data-tab="themes-symbols">Symbols</button>
+                <button class="tab-btn" data-tab="themes-motifs">Motifs</button>
+              </div>
+
+              <div class="tab-content active" id="themes-core">
+                <div class="grid">
+                  <div class="card">
+                    <h3>Idealism vs. Reality</h3>
+                    <p>
+                      The central tension of the novel. Don Quixote's chivalric worldview constantly clashes with prosaic reality, raising questions about whether his "madness" is preferable to cynical acceptance.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>The Nature of Madness</h3>
+                    <p>
+                      Is Don Quixote truly mad, or does he choose to see the world differently? The novel suggests that "madness" can reveal truths that "sanity" overlooks.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>The Power of Literature</h3>
+                    <p>
+                      Books transform Don Quixote's identity. The novel constantly reflects on itself as a text, questioning how stories shape our perception of reality.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Identity and Transformation</h3>
+                    <p>
+                      Characters evolve through experience. Don Quixote becomes more grounded while Sancho grows more imaginative, suggesting identity is fluid and relational.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-content" id="themes-symbols">
+                <div class="grid">
+                  <div class="card">
+                    <h3>The Windmills</h3>
+                    <p>
+                      Perhaps literature's most famous symbol. Don Quixote's attack on windmills he perceives as giants represents the futility—and nobility—of fighting impossible battles.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Rocinante</h3>
+                    <p>
+                      Don Quixote's old, skinny horse symbolizes the gap between the knight's grand self-image and humble reality. The name ("formerly a nag") suggests transformation through imagination.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>The Helmet of Mambrino</h3>
+                    <p>
+                      A barber's basin that Don Quixote insists is a legendary golden helmet. This "baciyelmo" embodies the novel's central ambiguity between appearance and reality.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Books</h3>
+                    <p>
+                      The chivalric romances that "infect" Don Quixote represent both the danger and the transformative power of literature. The novel begins with a book-burning.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-content" id="themes-motifs">
+                <div class="grid">
+                  <div class="card">
+                    <h3>Enchantment</h3>
+                    <p>
+                      Don Quixote explains away his failures by claiming that enchanters alter reality. This motif allows him to maintain his worldview despite contrary evidence.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Storytelling</h3>
+                    <p>
+                      Characters constantly tell stories, hear stories, and discuss stories. The novel itself is presented as a found manuscript, emphasizing narrative's role in constructing reality.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Physical Comedy</h3>
+                    <p>
+                      Beatings, falls, and humiliations occur throughout. This slapstick element grounds the philosophical content in bodily reality and medieval comedic tradition.
+                    </p>
+                  </div>
+                  <div class="card">
+                    <h3>Proverbs</h3>
+                    <p>
+                      Sancho's speech is peppered with (often mangled) proverbs, representing folk wisdom that both complements and contrasts with Don Quixote's bookish knowledge.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Timeline Section -->
+          <section id="timeline">
+            <h2>Timeline Zone · Publication History</h2>
+            <div class="timeline-item">
+              <div class="timeline-year">1605</div>
+              <p>
+                Part I of <em>Don Quixote</em> published in Madrid as <em>El ingenioso hidalgo don Quijote de la Mancha</em>. It becomes an immediate bestseller, with unauthorized editions appearing in Portugal and elsewhere.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">1614</div>
+              <p>
+                An unauthorized sequel appears under the pseudonym "Alonso Fernández de Avellaneda." This spurious continuation angers Cervantes and motivates him to complete his own Part II.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">1615</div>
+              <p>
+                Cervantes publishes Part II: <em>Segunda parte del ingenioso caballero don Quijote de la Mancha</em>. Widely considered superior to Part I, it features deeper characterization and metafictional complexity.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">1616–17th Century</div>
+              <p>
+                Cervantes dies in April 1616. The novel spreads throughout Europe, translated into English (1612, partial; 1620, complete), French, German, and Italian.
+              </p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-year">Modern Era</div>
+              <p>
+                Recognized as a masterpiece of world literature. Translated into over 50 languages. Influences countless writers from Fielding to Flaubert to Borges. "Quixotic" enters the English language.
+              </p>
+            </div>
+          </section>
+
+          <!-- Impact Section -->
+          <section id="impact">
+            <h2>Impact Zone · Literary Legacy</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>Birth of the Modern Novel</h3>
+                <p>
+                  Critics from Lionel Trilling to Harold Bloom consider <em>Don Quixote</em> the first modern novel. Its psychological realism, narrative self-consciousness, and moral complexity established templates still used today.
+                </p>
+              </div>
+              <div class="card">
+                <h3>Influence on World Literature</h3>
+                <p>
+                  Direct influence on Fielding's <em>Joseph Andrews</em>, Sterne's <em>Tristram Shandy</em>, Flaubert's <em>Madame Bovary</em>, and Dostoevsky's <em>The Idiot</em>. Borges called it the foundational text of modern fiction.
+                </p>
+              </div>
+              <div class="card">
+                <h3>Cultural Icon</h3>
+                <p>
+                  "Tilting at windmills" and "quixotic" have entered common parlance. The image of the gaunt knight and rotund squire appears in paintings by Picasso, Dalí, and countless others. The musical <em>Man of La Mancha</em> (1965) brought the story to Broadway.
+                </p>
+              </div>
+              <div class="card">
+                <h3>Philosophical Resonance</h3>
+                <p>
+                  Existentialists, postmodernists, and literary theorists have all found rich material in the novel. Its questions about reality, identity, and the power of narrative remain urgent.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Quotes Section -->
+          <section id="quotes">
+            <h2>Quote Quest · Interactive Learning</h2>
+            <p>
+              Draw quotes from the novel to deepen your understanding. Each quote is linked to a key theme. Earn XP for exploring the text!
+            </p>
+
+            <button id="quoteBtn" class="btn-primary">
+              <span>🎲</span> Draw a Quote
+            </button>
+
+            <div id="quoteBox" class="quote-box" style="display:none;">
+              <div id="quoteText"></div>
+              <div id="quoteMeta" class="quote-meta"></div>
+            </div>
+
+            <div class="quote-stats">
+              <span>Quotes drawn: <span id="quoteCount">0</span></span>
+              <span>Unique quotes: <span id="uniqueQuotes">0</span></span>
+            </div>
+
+            <div class="quiz-card">
+              <h3>Knowledge Check · Random Quiz</h3>
+              <p class="quiz-q" id="quizQuestion">Which theme best fits Don Quixote attacking the windmills?</p>
+              <div class="quiz-options" id="quizOptions">
+                <!-- Options will be populated by JavaScript -->
+              </div>
+              <p id="quizFeedback" class="quiz-feedback"></p>
+              <button id="nextQuizBtn" class="quiz-next-btn" style="display:none;">Next Question</button>
+              <p class="hint">Answer questions correctly to earn bonus XP. Each question can only be answered once for XP.</p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIBLIOGRAPHY MODAL -->
+  <div class="bib-modal" id="bibModal">
+    <div class="bib-modal-backdrop"></div>
+    <div class="bib-modal-panel">
+      <div class="bib-modal-header">
+        <div class="bib-modal-title">Works Cited</div>
+        <button class="bib-close-btn" id="bibCloseBtn">×</button>
+      </div>
+      <div class="bib-modal-body">
+        <div class="bib-section">
+          <h3>Primary Source</h3>
+          <div class="bib-entry">
+            <span class="author">Cervantes Saavedra, Miguel de.</span>
+            <span class="title">Don Quixote.</span>
+            <span class="details">Translated by Edith Grossman, HarperCollins, 2003.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Cervantes Saavedra, Miguel de.</span>
+            <span class="title">El ingenioso hidalgo don Quijote de la Mancha.</span>
+            <span class="details">Edited by Francisco Rico, Real Academia Española, 2004. [Spanish critical edition]</span>
+          </div>
+        </div>
+
+        <div class="bib-section">
+          <h3>Secondary Sources</h3>
+          <div class="bib-entry">
+            <span class="author">Bloom, Harold.</span>
+            <span class="title">The Western Canon: The Books and School of the Ages.</span>
+            <span class="details">Harcourt Brace, 1994. Chapter on Cervantes.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Close, Anthony.</span>
+            <span class="title">A Companion to Don Quixote.</span>
+            <span class="details">Tamesis Books, 2008.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Fuentes, Carlos.</span>
+            <span class="title">"Cervantes, or the Critique of Reading."</span>
+            <span class="details">Myself with Others: Selected Essays, Farrar, Straus and Giroux, 1988, pp. 49–71.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Graf, Eric C.</span>
+            <span class="title">Cervantes and Modernity: Four Essays on Don Quijote.</span>
+            <span class="details">Bucknell University Press, 2007.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Riley, E. C.</span>
+            <span class="title">Cervantes's Theory of the Novel.</span>
+            <span class="details">Oxford University Press, 1962.</span>
+          </div>
+        </div>
+
+        <div class="bib-section">
+          <h3>Reference Works</h3>
+          <div class="bib-entry">
+            <span class="author">Encyclopedia Britannica.</span>
+            <span class="title">"Don Quixote."</span>
+            <span class="details">Britannica Academic, 2024.</span>
+          </div>
+          <div class="bib-entry">
+            <span class="author">Instituto Cervantes.</span>
+            <span class="title">Centro Virtual Cervantes.</span>
+            <span class="details">https://cvc.cervantes.es. [Digital resource for Cervantes studies]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-modal-backdrop"></div>
+    <div class="settings-modal-panel">
+      <div class="settings-modal-header">
+        <div class="settings-modal-title">Settings</div>
+        <button class="bib-close-btn" id="settingsCloseBtn">×</button>
+      </div>
+      <div class="settings-modal-body">
+        <div class="settings-section">
+          <h4>Progress Statistics</h4>
+          <div class="settings-info">
+            <div>Level: <strong id="settingsLevel">1</strong></div>
+            <div>Total XP Earned: <strong id="settingsTotalXP">0</strong></div>
+            <div>Zones Visited: <strong id="settingsZones">0</strong>/7</div>
+            <div>Badges Earned: <strong id="settingsBadges">0</strong></div>
+            <div>Quiz Questions Answered: <strong id="settingsQuiz">0</strong></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4>Data Management</h4>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 10px;">
+            Your progress is saved automatically in your browser. Use the button below to start fresh.
+          </p>
+          <button class="btn-danger" id="resetProgressBtn">
+            <span>🗑️</span> Reset All Progress
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Don Quixote · Knight's Codex — An interactive literary exploration. Built for educational purposes.
+  </footer>
+</div>
+
+<script>
+  // -------- ANIMATED STARS BACKGROUND --------
+  (function() {
+    const starsContainer = document.getElementById('stars');
+    const starCount = 80;
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.animationDuration = (2 + Math.random() * 3) + 's';
+      starsContainer.appendChild(star);
+    }
+  })();
+
+  // -------- LOCAL STORAGE KEYS --------
+  const STORAGE_KEYS = {
+    XP: 'dq_xp',
+    LEVEL: 'dq_level',
+    XP_MAX: 'dq_xpMax',
+    BADGES: 'dq_badges',
+    VISITED_ZONES: 'dq_visitedZones',
+    QUOTE_COUNT: 'dq_quoteCount',
+    UNIQUE_QUOTES: 'dq_uniqueQuotes',
+    ANSWERED_QUESTIONS: 'dq_answeredQuestions',
+    TOTAL_XP: 'dq_totalXP'
+  };
+
+  // -------- MAP + ZONE POPUP LOGIC --------
+  const mapLayer = document.getElementById('mapLayer');
+  const zoneButtons = document.querySelectorAll('.map-zone');
+  const zoneModal = document.getElementById('zoneModal');
+  const activeZoneLabel = document.getElementById('activeZoneLabel');
+  const backToMapBtn = document.getElementById('backToMap');
+  const hudBackToMap = document.getElementById('hudBackToMap');
+  const hudRecenter = document.getElementById('hudRecenter');
+  const sectionCountLabel = document.getElementById('sectionCountLabel');
+
+  const sections = document.querySelectorAll('main section');
+  const jumpOverview = document.getElementById('jumpOverview');
+  const jumpQuotes = document.getElementById('jumpQuotes');
+
+  // XP / level system
+  let xp = 0;
+  let xpMax = 100;
+  let level = 1;
+  let totalXPEarned = 0;
+  const xpFill = document.getElementById('xpFill');
+  const xpValue = document.getElementById('xpValue');
+  const xpMaxSpan = document.getElementById('xpMax');
+  const levelValue = document.getElementById('levelValue');
+  const badgeTray = document.getElementById('badgeTray');
+  const xpFloat = document.getElementById('xpFloat');
+  let visitedZones = new Set();
+  let badges = [];
+
+  // -------- LOAD SAVED PROGRESS --------
+  function loadProgress() {
+    try {
+      xp = parseInt(localStorage.getItem(STORAGE_KEYS.XP)) || 0;
+      level = parseInt(localStorage.getItem(STORAGE_KEYS.LEVEL)) || 1;
+      xpMax = parseInt(localStorage.getItem(STORAGE_KEYS.XP_MAX)) || 100;
+      totalXPEarned = parseInt(localStorage.getItem(STORAGE_KEYS.TOTAL_XP)) || 0;
+
+      const savedBadges = localStorage.getItem(STORAGE_KEYS.BADGES);
+      badges = savedBadges ? JSON.parse(savedBadges) : [];
+
+      const savedZones = localStorage.getItem(STORAGE_KEYS.VISITED_ZONES);
+      visitedZones = savedZones ? new Set(JSON.parse(savedZones)) : new Set();
+
+      quoteCount = parseInt(localStorage.getItem(STORAGE_KEYS.QUOTE_COUNT)) || 0;
+      uniqueQuotesDrawn = new Set(JSON.parse(localStorage.getItem(STORAGE_KEYS.UNIQUE_QUOTES) || '[]'));
+      answeredQuestions = new Set(JSON.parse(localStorage.getItem(STORAGE_KEYS.ANSWERED_QUESTIONS) || '[]'));
+
+      // Update UI
+      levelValue.textContent = level;
+      xpValue.textContent = xp;
+      xpMaxSpan.textContent = xpMax;
+      xpFill.style.width = Math.max(0, Math.min(100, (xp / xpMax) * 100)) + '%';
+
+      badgeTray.innerHTML = badges.map(b => '<span class="badge-pill">' + b + '</span>').join(' ');
+
+      // Mark visited zones on map
+      visitedZones.forEach(zoneId => markZoneVisited(zoneId));
+      updateVisitedLabel();
+
+      // Update quote stats
+      if (quoteCountSpan) quoteCountSpan.textContent = quoteCount;
+      if (uniqueQuotesSpan) uniqueQuotesSpan.textContent = uniqueQuotesDrawn.size;
+
+    } catch (e) {
+      console.warn('Error loading saved progress:', e);
+    }
+  }
+
+  // -------- SAVE PROGRESS --------
+  function saveProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.XP, xp);
+      localStorage.setItem(STORAGE_KEYS.LEVEL, level);
+      localStorage.setItem(STORAGE_KEYS.XP_MAX, xpMax);
+      localStorage.setItem(STORAGE_KEYS.TOTAL_XP, totalXPEarned);
+      localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(badges));
+      localStorage.setItem(STORAGE_KEYS.VISITED_ZONES, JSON.stringify([...visitedZones]));
+      localStorage.setItem(STORAGE_KEYS.QUOTE_COUNT, quoteCount);
+      localStorage.setItem(STORAGE_KEYS.UNIQUE_QUOTES, JSON.stringify([...uniqueQuotesDrawn]));
+      localStorage.setItem(STORAGE_KEYS.ANSWERED_QUESTIONS, JSON.stringify([...answeredQuestions]));
+    } catch (e) {
+      console.warn('Error saving progress:', e);
+    }
+  }
+
+  // -------- RESET PROGRESS --------
+  function resetProgress() {
+    if (!confirm('Are you sure you want to reset all progress? This cannot be undone.')) return;
+
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+
+    xp = 0;
+    level = 1;
+    xpMax = 100;
+    totalXPEarned = 0;
+    badges = [];
+    visitedZones = new Set();
+    quoteCount = 0;
+    uniqueQuotesDrawn = new Set();
+    answeredQuestions = new Set();
+    currentQuizIndex = 0;
+
+    // Update UI
+    levelValue.textContent = level;
+    xpValue.textContent = xp;
+    xpMaxSpan.textContent = xpMax;
+    xpFill.style.width = '0%';
+    badgeTray.innerHTML = '';
+
+    zoneButtons.forEach(btn => btn.classList.remove('visited'));
+    updateVisitedLabel();
+
+    if (quoteCountSpan) quoteCountSpan.textContent = '0';
+    if (uniqueQuotesSpan) uniqueQuotesSpan.textContent = '0';
+
+    loadQuizQuestion();
+    closeSettingsModal();
+
+    alert('Progress reset successfully!');
+  }
+
+  function addBadge(name) {
+    if (!badges.includes(name)) {
+      badges.push(name);
+      badgeTray.innerHTML = badges.map(b => '<span class="badge-pill">' + b + '</span>').join(' ');
+      saveProgress();
+    }
+  }
+
+  function addXP(amount) {
+    xp += amount;
+    totalXPEarned += amount;
+
+    while (xp >= xpMax) {
+      xp -= xpMax;
+      level += 1;
+      xpMax += 50;
+      levelValue.textContent = level;
+      xpMaxSpan.textContent = xpMax;
+      addBadge('Level ' + level);
+    }
+
+    xpValue.textContent = xp;
+    const pct = Math.max(0, Math.min(100, (xp / xpMax) * 100));
+    xpFill.style.width = pct + '%';
+
+    if (xpFloat) {
+      xpFloat.textContent = '+' + amount + ' XP';
+      xpFloat.classList.add('show');
+      setTimeout(() => xpFloat.classList.remove('show'), 600);
+    }
+
+    if (visitedZones.size >= 4) addBadge('Zone Explorer');
+    if (visitedZones.size >= 7) addBadge('Completionist');
+
+    saveProgress();
+  }
+
+  function updateVisitedLabel() {
+    sectionCountLabel.textContent = visitedZones.size + ' zones visited';
+  }
+
+  function markZoneVisited(zoneId) {
+    zoneButtons.forEach(btn => {
+      if (btn.dataset.zone === zoneId && !btn.classList.contains('visited')) {
+        btn.classList.add('visited');
+      }
+    });
+  }
+
+  function openZone(targetId) {
+    sections.forEach(sec => {
+      sec.classList.toggle('active', sec.id === targetId);
+    });
+
+    zoneButtons.forEach(btn => {
+      const isActive = btn.dataset.zone === targetId;
+      btn.classList.toggle('active', isActive);
+      if (isActive) {
+        const zoom = parseFloat(btn.dataset.zoom || '1.4');
+        const offsetX = parseFloat(btn.dataset.offsetX || '0');
+        const offsetY = parseFloat(btn.dataset.offsetY || '0');
+
+        if (mapLayer) {
+          mapLayer.style.transform = 'translate(' + offsetX + '%, ' + offsetY + '%) scale(' + zoom + ')';
+        }
+
+        const label = btn.dataset.label || (btn.querySelector('.map-zone-label')?.textContent || targetId);
+        activeZoneLabel.textContent = label;
+      }
+    });
+
+    zoneModal.classList.add('open');
+    zoneModal.setAttribute('aria-hidden', 'false');
+
+    if (!visitedZones.has(targetId)) {
+      visitedZones.add(targetId);
+      updateVisitedLabel();
+      markZoneVisited(targetId);
+      addXP(5);
+    }
+  }
+
+  function closeZoneModalAndResetCamera() {
+    if (mapLayer) {
+      mapLayer.style.transform = 'translate(0,0) scale(1)';
+    }
+    zoneButtons.forEach(btn => btn.classList.remove('active'));
+    zoneModal.classList.remove('open');
+    zoneModal.setAttribute('aria-hidden', 'true');
+    activeZoneLabel.textContent = 'World View';
+  }
+
+  zoneButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.zone;
+      if (target) openZone(target);
+    });
+  });
+
+  if (backToMapBtn) backToMapBtn.addEventListener('click', closeZoneModalAndResetCamera);
+  if (hudBackToMap) hudBackToMap.addEventListener('click', closeZoneModalAndResetCamera);
+  if (hudRecenter) hudRecenter.addEventListener('click', closeZoneModalAndResetCamera);
+  if (jumpOverview) jumpOverview.addEventListener('click', () => openZone('overview'));
+  if (jumpQuotes) jumpQuotes.addEventListener('click', () => openZone('quotes'));
+
+  // Close modal when clicking backdrop
+  const modalBackdrop = document.querySelector('.zone-modal-backdrop');
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', closeZoneModalAndResetCamera);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (zoneModal.classList.contains('open')) closeZoneModalAndResetCamera();
+      if (bibModal.classList.contains('open')) closeBibModal();
+      if (settingsModal.classList.contains('open')) closeSettingsModal();
+    }
+  });
+
+  // -------- TAB SYSTEM --------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      const container = btn.closest('.tab-container');
+
+      container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
+
+  // -------- BIBLIOGRAPHY MODAL --------
+  const bibModal = document.getElementById('bibModal');
+  const hudSources = document.getElementById('hudSources');
+  const bibCloseBtn = document.getElementById('bibCloseBtn');
+  const bibBackdrop = bibModal.querySelector('.bib-modal-backdrop');
+
+  function openBibModal() {
+    bibModal.classList.add('open');
+  }
+
+  function closeBibModal() {
+    bibModal.classList.remove('open');
+  }
+
+  if (hudSources) hudSources.addEventListener('click', openBibModal);
+  if (bibCloseBtn) bibCloseBtn.addEventListener('click', closeBibModal);
+  if (bibBackdrop) bibBackdrop.addEventListener('click', closeBibModal);
+
+  // -------- SETTINGS MODAL --------
+  const settingsModal = document.getElementById('settingsModal');
+  const hudSettings = document.getElementById('hudSettings');
+  const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+  const settingsBackdrop = settingsModal.querySelector('.settings-modal-backdrop');
+  const resetProgressBtn = document.getElementById('resetProgressBtn');
+
+  function updateSettingsStats() {
+    document.getElementById('settingsLevel').textContent = level;
+    document.getElementById('settingsTotalXP').textContent = totalXPEarned;
+    document.getElementById('settingsZones').textContent = visitedZones.size;
+    document.getElementById('settingsBadges').textContent = badges.length;
+    document.getElementById('settingsQuiz').textContent = answeredQuestions.size;
+  }
+
+  function openSettingsModal() {
+    updateSettingsStats();
+    settingsModal.classList.add('open');
+  }
+
+  function closeSettingsModal() {
+    settingsModal.classList.remove('open');
+  }
+
+  if (hudSettings) hudSettings.addEventListener('click', openSettingsModal);
+  if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', closeSettingsModal);
+  if (settingsBackdrop) settingsBackdrop.addEventListener('click', closeSettingsModal);
+  if (resetProgressBtn) resetProgressBtn.addEventListener('click', resetProgress);
+
+  // -------- QUOTES SYSTEM --------
+  const quotes = [
+    { text: "In a village of La Mancha, the name of which I have no desire to call to mind, there lived not long since one of those gentlemen that keep a lance in the lance-rack, an old buckler, a lean hack, and a greyhound for coursing.", speaker: "Narrator", focus: "Opening" },
+    { text: "I know who I am, and who I may be, if I choose.", speaker: "Don Quixote", focus: "Identity" },
+    { text: "The truth may be stretched thin, but it never breaks, and it always surfaces above lies, as oil floats on water.", speaker: "Don Quixote", focus: "Truth" },
+    { text: "Too much sanity may be madness—and maddest of all: to see life as it is, and not as it should be!", speaker: "Don Quixote", focus: "Idealism" },
+    { text: "For me alone was Don Quixote born, and I for him; it was his to act, mine to write.", speaker: "Narrator (Cervantes)", focus: "Meta-fiction" },
+    { text: "Until death it is all life.", speaker: "Don Quixote", focus: "Philosophy" },
+    { text: "Facts are the enemy of truth.", speaker: "Don Quixote", focus: "Reality vs. Illusion" },
+    { text: "When life itself seems lunatic, who knows where madness lies?", speaker: "Don Quixote", focus: "Madness" },
+    { text: "Destiny guides our fortunes more favorably than we could have expected.", speaker: "Don Quixote", focus: "Fate" },
+    { text: "Every man is as Heaven made him, and sometimes a great deal worse.", speaker: "Sancho Panza", focus: "Human Nature" },
+    { text: "A proverb is a short sentence based on long experience.", speaker: "Sancho Panza", focus: "Wisdom" },
+    { text: "Those who'll play with cats must expect to be scratched.", speaker: "Sancho Panza", focus: "Proverb" },
+    { text: "There is a remedy for everything except death.", speaker: "Don Quixote", focus: "Hope" },
+    { text: "The brave man carves out his fortune, and every man is the son of his own works.", speaker: "Don Quixote", focus: "Self-Determination" },
+    { text: "Liberty is one of the most precious gifts that heaven has bestowed upon mankind.", speaker: "Don Quixote", focus: "Freedom" }
+  ];
+
+  const quoteBtn = document.getElementById('quoteBtn');
+  const quoteBox = document.getElementById('quoteBox');
+  const quoteText = document.getElementById('quoteText');
+  const quoteMeta = document.getElementById('quoteMeta');
+  const quoteCountSpan = document.getElementById('quoteCount');
+  const uniqueQuotesSpan = document.getElementById('uniqueQuotes');
+
+  let quoteCount = 0;
+  let uniqueQuotesDrawn = new Set();
+
+  if (quoteBtn) {
+    quoteBtn.addEventListener('click', () => {
+      if (!quotes || quotes.length === 0) return;
+
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const q = quotes[randomIndex];
+
+      quoteText.textContent = '"' + (q.text || '') + '"';
+      quoteMeta.textContent = (q.speaker || 'Unknown') + (q.focus ? ' · Focus: ' + q.focus : '');
+      quoteBox.style.display = 'block';
+
+      quoteCount += 1;
+      quoteCountSpan.textContent = quoteCount;
+
+      const wasNew = !uniqueQuotesDrawn.has(randomIndex);
+      uniqueQuotesDrawn.add(randomIndex);
+      uniqueQuotesSpan.textContent = uniqueQuotesDrawn.size;
+
+      addXP(wasNew ? 10 : 5);
+
+      if (quoteCount >= 3) addBadge('Quote Seeker');
+      if (quoteCount >= 10) addBadge('Quote Knight');
+      if (uniqueQuotesDrawn.size >= quotes.length) addBadge('Quote Master');
+
+      saveProgress();
+    });
+  }
+
+  // -------- ENHANCED QUIZ SYSTEM --------
+  const quizQuestions = [
+    {
+      question: "Which theme best fits Don Quixote attacking the windmills?",
+      options: ["Power of literature", "Idealism vs. reality", "Family conflict", "Economic inequality"],
+      correct: 1,
+      explanation: "The windmills scene is the novel's most famous illustration of the clash between Don Quixote's idealistic perception and mundane reality."
+    },
+    {
+      question: "What does Sancho Panza represent in the novel?",
+      options: ["Blind idealism", "Aristocratic values", "Practical realism", "Religious faith"],
+      correct: 2,
+      explanation: "Sancho Panza serves as the practical, earthy counterpoint to Don Quixote's lofty idealism, grounding the narrative in common sense."
+    },
+    {
+      question: "Why is Don Quixote considered the first modern novel?",
+      options: ["It was the longest book", "It introduced psychological depth and narrative self-awareness", "It was written in Spanish", "It had illustrations"],
+      correct: 1,
+      explanation: "Cervantes pioneered techniques like unreliable narration, metafiction, and complex character development that define the modern novel."
+    },
+    {
+      question: "Who is Dulcinea del Toboso?",
+      options: ["Don Quixote's sister", "A peasant woman Don Quixote idealizes", "A princess from a neighboring kingdom", "Sancho's wife"],
+      correct: 1,
+      explanation: "Dulcinea is a peasant woman (Aldonza Lorenzo) whom Don Quixote transforms in his imagination into a noble lady worthy of a knight's devotion."
+    },
+    {
+      question: "What event motivated Cervantes to write Part II of Don Quixote?",
+      options: ["Financial success of Part I", "An unauthorized sequel by another author", "A request from the King", "His recovery from illness"],
+      correct: 1,
+      explanation: "In 1614, an unauthorized sequel by 'Avellaneda' appeared, angering Cervantes and motivating him to write his own authentic Part II."
+    },
+    {
+      question: "What is the 'Helmet of Mambrino' actually?",
+      options: ["A golden helmet from legend", "A barber's basin", "A cooking pot", "A soldier's cap"],
+      correct: 1,
+      explanation: "Don Quixote mistakes a barber's basin for the legendary golden helmet of Mambrino, perfectly illustrating his tendency to transform reality through imagination."
+    },
+    {
+      question: "How does Don Quixote explain his failures and defeats?",
+      options: ["He blames Sancho", "He claims enchanters alter reality", "He admits his mistakes", "He blames bad luck"],
+      correct: 1,
+      explanation: "Don Quixote attributes his failures to malicious enchanters who transform reality to thwart him, allowing him to maintain his worldview."
+    }
+  ];
+
+  const quizQuestion = document.getElementById('quizQuestion');
+  const quizOptions = document.getElementById('quizOptions');
+  const quizFeedback = document.getElementById('quizFeedback');
+  const nextQuizBtn = document.getElementById('nextQuizBtn');
+
+  let currentQuizIndex = 0;
+  let answeredQuestions = new Set();
+
+  function loadQuizQuestion() {
+    // Find an unanswered question, or cycle through all
+    let attempts = 0;
+    while (answeredQuestions.has(currentQuizIndex) && attempts < quizQuestions.length) {
+      currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+      attempts++;
+    }
+
+    const q = quizQuestions[currentQuizIndex];
+    quizQuestion.textContent = q.question;
+    quizFeedback.textContent = '';
+    quizFeedback.className = 'quiz-feedback';
+    nextQuizBtn.style.display = 'none';
+
+    quizOptions.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-option';
+      btn.textContent = opt;
+      btn.dataset.index = i;
+
+      if (answeredQuestions.has(currentQuizIndex)) {
+        btn.disabled = true;
+        if (i === q.correct) {
+          btn.classList.add('correct-choice');
+        }
+      }
+
+      btn.addEventListener('click', () => handleQuizAnswer(i));
+      quizOptions.appendChild(btn);
+    });
+  }
+
+  function handleQuizAnswer(selectedIndex) {
+    const q = quizQuestions[currentQuizIndex];
+    const buttons = quizOptions.querySelectorAll('.quiz-option');
+    const isCorrect = selectedIndex === q.correct;
+    const alreadyAnswered = answeredQuestions.has(currentQuizIndex);
+
+    buttons.forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === q.correct) {
+        btn.classList.add('correct-choice');
+      } else if (i === selectedIndex && !isCorrect) {
+        btn.classList.add('wrong-choice');
+      }
+    });
+
+    if (isCorrect) {
+      quizFeedback.textContent = 'Correct! ' + q.explanation;
+      quizFeedback.className = 'quiz-feedback good';
+      if (!alreadyAnswered) {
+        addXP(20);
+        addBadge('Theme Reader');
+      }
+    } else {
+      quizFeedback.textContent = 'Not quite. ' + q.explanation;
+      quizFeedback.className = 'quiz-feedback bad';
+    }
+
+    answeredQuestions.add(currentQuizIndex);
+
+    if (answeredQuestions.size >= quizQuestions.length) {
+      addBadge('Quiz Champion');
+    }
+
+    nextQuizBtn.style.display = 'inline-block';
+    saveProgress();
+  }
+
+  if (nextQuizBtn) {
+    nextQuizBtn.addEventListener('click', () => {
+      currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+      loadQuizQuestion();
+    });
+  }
+
+  // -------- INITIALIZATION --------
+  loadProgress();
+  loadQuizQuestion();
+
+  // Initial setup if no saved data
+  if (visitedZones.size === 0) {
+    visitedZones.add('overview');
+    markZoneVisited('overview');
+    updateVisitedLabel();
+    saveProgress();
+  }
+
+</script>
+</body>
+</html>

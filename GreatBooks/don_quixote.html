@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Quixotic Archives | A Don Quixote Database</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-wood: #3e2723;
+            --secondary-parchment: #d7c496;
+            --text-ink: #2b1d0e;
+            --accent-crimson: #800000;
+            --accent-gold: #c5a059;
+            --paper-shadow: rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background-color: #2b1d0e;
+            color: var(--text-ink);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+                linear-gradient(to bottom, #2b1d0e, #1a0f05);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--primary-wood);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border: 2px solid var(--primary-wood);
+            border-radius: 6px;
+        }
+
+        header {
+            background-color: var(--primary-wood);
+            color: var(--secondary-parchment);
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 8px double var(--accent-gold);
+            box-shadow: 0 10px 20px black;
+            position: relative;
+            background-image: repeating-linear-gradient(45deg, #3e2723 0, #3e2723 10px, #2d1b18 10px, #2d1b18 20px);
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3.5rem;
+            margin: 0;
+            color: var(--accent-gold);
+            text-shadow: 3px 3px 0px #000;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.4rem;
+            color: #bdc3c7;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        nav {
+            background: #4a342e;
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 4px solid #1a0f05;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav button {
+            background: transparent;
+            border: 2px solid transparent;
+            color: var(--secondary-parchment);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.2rem;
+            margin: 0 15px;
+            padding: 5px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        nav button:hover, nav button.active {
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px var(--accent-gold);
+            border-bottom: 2px solid var(--accent-crimson);
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 3rem auto;
+            padding: 0 20px;
+            min-height: 80vh;
+        }
+
+        /* Database Search Interface */
+        .database-interface {
+            background-color: var(--secondary-parchment);
+            padding: 2.5rem;
+            border-radius: 4px;
+            border: 15px solid var(--primary-wood);
+            border-image: repeating-linear-gradient(45deg, #3e2723, #3e2723 10px, #5d4037 10px, #5d4037 20px) 20;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            margin-bottom: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .database-interface::after {
+            content: "✦";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 2rem;
+            color: var(--primary-wood);
+        }
+        .database-interface::before {
+            content: "✦";
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 2rem;
+            color: var(--primary-wood);
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            font-size: 1.4rem;
+            border: 3px solid var(--primary-wood);
+            background-color: #fdf6e3;
+            font-family: 'MedievalSharp', cursive;
+            color: var(--text-ink);
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.2'/%3E%3C/svg%3E");
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-tag {
+            padding: 8px 20px;
+            background-color: var(--accent-crimson);
+            color: #f4e4bc;
+            border: 2px solid #500000;
+            cursor: pointer;
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1rem;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+
+        .filter-tag:hover {
+            transform: scale(1.05);
+            background-color: #a00000;
+        }
+
+        /* Grid for Content Cards */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .card {
+            background-color: var(--secondary-parchment);
+            border: 1px solid #c0b080;
+            padding: 2rem;
+            position: relative;
+            transition: transform 0.3s;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
+            clip-path: polygon(
+                0% 0%, 100% 0%, 100% 100%, 
+                95% 98%, 90% 100%, 85% 98%, 80% 100%, 
+                75% 98%, 70% 100%, 65% 98%, 60% 100%, 
+                55% 98%, 50% 100%, 45% 98%, 40% 100%, 
+                35% 98%, 30% 100%, 25% 98%, 20% 100%, 
+                15% 98%, 10% 100%, 5% 98%, 0% 100%
+            );
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+        }
+
+        .card:hover {
+            transform: translateY(-5px) rotate(1deg);
+            z-index: 10;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--accent-crimson);
+            font-family: 'Cinzel Decorative', cursive;
+            border-bottom: 2px solid var(--primary-wood);
+            padding-bottom: 15px;
+            font-size: 1.6rem;
+        }
+        
+        /* Drop Cap effect */
+        .card p::first-letter {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 3rem;
+            float: left;
+            margin-right: 8px;
+            line-height: 1;
+            color: var(--primary-wood);
+        }
+
+        .category-seal {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 60px;
+            height: 60px;
+            background: var(--accent-crimson);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            border: 4px dashed #600000;
+            transform: rotate(15deg);
+            text-align: center;
+            text-transform: uppercase;
+            font-family: sans-serif; /* Legibility */
+            line-height: 1.1;
+            padding: 5px;
+        }
+
+        /* Quote Generator */
+        .quote-section {
+            text-align: center;
+            padding: 4rem 3rem;
+            background-color: var(--primary-wood);
+            color: var(--secondary-parchment);
+            margin-top: 5rem;
+            border: 4px double var(--accent-gold);
+            position: relative;
+            background-image: repeating-linear-gradient(135deg, #3e2723 0, #3e2723 10px, #36221e 10px, #36221e 20px);
+        }
+
+        .quote-display {
+            font-size: 2.2rem;
+            font-style: italic;
+            margin-bottom: 2.5rem;
+            font-family: 'Cinzel Decorative', cursive;
+            text-shadow: 2px 2px 0px #000;
+            line-height: 1.4;
+        }
+
+        .btn-medieval {
+            padding: 15px 40px;
+            background: linear-gradient(to bottom, #d4af37, #aa8c2c);
+            color: #2b1d0e;
+            border: 2px solid #5a4a1b;
+            font-size: 1.3rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Cinzel Decorative', cursive;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #5a4a1b, 0 10px 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn-medieval:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #5a4a1b, inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem;
+            margin-top: 5rem;
+            font-size: 1.1rem;
+            background-color: #1a0f05;
+            color: #888;
+            border-top: 1px solid #333;
+            font-family: 'Cinzel Decorative', cursive;
+        }
+
+        .windmill-icon {
+            font-size: 4rem;
+            display: inline-block;
+            animation: spin 15s linear infinite;
+            filter: sepia(100%);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="windmill-icon">⚙️</div>
+    <h1>The Quixotic Archives</h1>
+    <div class="subtitle">Ye Olde Digital Compendium of the Man of La Mancha</div>
+</header>
+
+<nav>
+    <button onclick="filterContent('all')">All Scrolls</button>
+    <button onclick="filterContent('Character')">Dramatis Personae</button>
+    <button onclick="filterContent('Adventure')">Great Deeds</button>
+    <button onclick="filterContent('Theme')">Themes</button>
+    <button onclick="filterContent('Symbol')">Symbols</button>
+</nav>
+
+<main>
+    <!-- Database Interface -->
+    <div class="database-interface">
+        <h3 style="font-family: 'Cinzel Decorative'; font-size: 2rem; margin: 0; color: var(--primary-wood);">Search the Royal Archives</h3>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Inscribe thy query here (e.g., 'Sancho', 'Chivalry')..." onkeyup="searchDatabase()">
+        <div class="filter-tags">
+            <button class="filter-tag" onclick="quickSearch('Knight')">Knight</button>
+            <button class="filter-tag" onclick="quickSearch('Madness')">Madness</button>
+            <button class="filter-tag" onclick="quickSearch('Honor')">Honor</button>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div id="contentGrid" class="grid-container">
+        <!-- Content injected via JS -->
+    </div>
+
+    <!-- Innovation: Random Quote Generator -->
+    <div class="quote-section">
+        <h2 style="font-family: 'Cinzel Decorative'; color: var(--accent-gold); margin-top: 0;">Wisdom of the Don</h2>
+        <div id="quoteDisplay" class="quote-display">"Destiny guides our fortunes more favorably than we could have expected."</div>
+        <button class="btn-medieval" onclick="newQuote()">Summon New Wisdom</button>
+    </div>
+
+</main>
+
+<footer>
+    <p>Created for Literature Class 101 | Integrating Technology & Classics</p>
+    <p><i>“Too much sanity may be madness — and maddest of all: to see life as it is, and not as it should be!”</i></p>
+</footer>
+
+<script>
+    // THE DATABASE
+    // A mock JSON database storing our literary data
+    const database = [
+        {
+            id: 1,
+            title: "Don Quixote de la Mancha",
+            category: "Character",
+            content: "The protagonist. An aging gentleman named Alonso Quixano who reads so many chivalric romances that he loses his sanity. He renames himself Don Quixote and sets out to revive chivalry, undo wrongs, and bring justice to the world.",
+            tags: ["hero", "madness", "knight", "Alonso Quixano"]
+        },
+        {
+            id: 2,
+            title: "Sancho Panza",
+            category: "Character",
+            content: "Quixote's faithful squire. A peasant laborer—greedy but kind, faithful but cowardly. He serves as a foil to Quixote's idealism with his grounded realism and proverbs. He hopes to be governor of an 'insula' (island).",
+            tags: ["squire", "realism", "loyalty", "governor"]
+        },
+        {
+            id: 3,
+            title: "The Quixotic Ideal",
+            category: "Theme",
+            content: "The belief that imagination, honor, and nobility of spirit are more important than the harsh realities of the world. It represents the clash between the romantic and the real, and the persistence of hope.",
+            tags: ["idealism", "philosophy", "hope"]
+        },
+        {
+            id: 4,
+            title: "Tilting at Windmills",
+            category: "Adventure",
+            content: "Perhaps the most famous imagery. Quixote sees thirty or forty hulking giants where there are only windmills. Despite Sancho's warnings, he charges them, only to be battered by their rotating sails.",
+            tags: ["giants", "illusion", "famous"]
+        },
+        {
+            id: 5,
+            title: "Dulcinea del Toboso",
+            category: "Character",
+            content: "A peasant girl named Aldonza Lorenzo whom Quixote views as a princess and the mistress of his heart. She never actually appears in the novel, existing only in Quixote's mind as the perfection of female beauty and virtue.",
+            tags: ["love", "illusion", "inspiration", "Aldonza Lorenzo"]
+        },
+        {
+            id: 6,
+            title: "Rocinante",
+            category: "Character",
+            content: "Don Quixote's barn horse. Slow, awkward, and past his prime, yet in Quixote's eyes, he is a steed worthy of a great knight, superior to Alexander's Bucephalus or the Cid's Babieca.",
+            tags: ["horse", "companion", "steed"]
+        },
+        {
+            id: 7,
+            title: "The Army of Sheep",
+            category: "Adventure",
+            content: "Seeing two clouds of dust on the road, Quixote imagines two massive armies clashing. They are actually two flocks of sheep. He charges into them, slaughtering sheep until the shepherds stone him.",
+            tags: ["delusion", "sheep", "battle", "comedy"]
+        },
+        {
+            id: 8,
+            title: "Samson Carrasco",
+            category: "Character",
+            content: "A bachelor of arts from Salamanca and a neighbor. He disguises himself as the 'Knight of the Mirrors' and later the 'Knight of the White Moon' to defeat Quixote in combat and force him to return home to cure his madness.",
+            tags: ["student", "rival", "Knight of the Mirrors", "cure"]
+        },
+        {
+            id: 9,
+            title: "The Helmet of Mambrino",
+            category: "Symbol",
+            content: "Quixote believes a brass barber's basin worn by a traveling barber to protect his hat from rain is actually the enchanted golden helmet of the Moorish king Mambrino. He demands it as his rightful spoil.",
+            tags: ["barber", "basin", "gold", "enchantment"]
+        },
+        {
+            id: 10,
+            title: "Cide Hamete Benengeli",
+            category: "Character",
+            content: "The fictional Moorish historian whom Cervantes claims wrote the original manuscript of Don Quixote's history. Cervantes presents himself merely as the translator, adding a layer of meta-fiction and historical satire.",
+            tags: ["narrator", "author", "meta-fiction", "historian"]
+        },
+        {
+            id: 11,
+            title: "The Galley Slaves",
+            category: "Adventure",
+            content: "Quixote encounters a chain gang of criminals sent to the galleys. Believing no man should be forced against his will, he attacks the guards and frees the prisoners, who promptly stone him and steal his clothes.",
+            tags: ["justice", "freedom", "irony", "criminals"]
+        },
+        {
+            id: 12,
+            title: "The Priest and The Barber",
+            category: "Character",
+            content: "Pero Pérez and Master Nicholas. Friends of Quixote who recognize his madness. They burn his books in an 'Inquisition' and devise elaborate plots (like the Princess Micomicona) to lure him back home.",
+            tags: ["friends", "censorship", "plotters"]
+        },
+        {
+            id: 13,
+            title: "Meta-fiction",
+            category: "Theme",
+            content: "Cervantes acknowledges the book itself within the story (in Part 2). Characters are aware they are being written about, breaking the fourth wall centuries before it was common.",
+            tags: ["literature", "writing", "post-modern"]
+        },
+        {
+            id: 14,
+            title: "The Duke and Duchess",
+            category: "Character",
+            content: "Cruel nobility who play pranks on Quixote and Sancho for their own amusement. They represent the cynicism of the sane world versus the innocent madness of Quixote.",
+            tags: ["villainy", "society", "pranks"]
+        },
+        {
+            id: 15,
+            title: "The Inn / The Castle",
+            category: "Symbol",
+            content: "To Quixote, the roadside inns are castles, the innkeeper is the lord, and the prostitutes are high-born ladies. It symbolizes the transformative power of his delusion and the stark contrast between his world and 17th-century Spain.",
+            tags: ["transformation", "setting", "illusion"]
+        },
+        {
+            id: 16,
+            title: "Clavileno the Swift",
+            category: "Adventure",
+            content: "A wooden horse used in a prank by the Duke and Duchess. Quixote and Sancho are blindfolded and told they are flying through the air to fight a giant, while servants use bellows to simulate wind.",
+            tags: ["prank", "magic", "flying", "wooden horse"]
+        },
+        {
+            id: 17,
+            title: "Class vs. Worth",
+            category: "Theme",
+            content: "Quixote treats everyone, from prostitutes to goat herders, with the dignity of royalty if they act honorably. The book challenges the rigid class structures of the time, suggesting nobility lies in action, not birth.",
+            tags: ["society", "nobility", "honor"]
+        }
+    ];
+
+    const quotes = [
+        "“Destiny guides our fortunes more favorably than we could have expected.”",
+        "“Finally, from so little sleeping and so much reading, his brain dried up and he went completely out of his mind.”",
+        "“Hunger is the best sauce in the world.”",
+        "“Wit and humor do not reside in slow minds.”",
+        "“Virtue is persecuted by the wicked more than it is loved by the good.”",
+        "“For neither good nor evil can last for ever; and so it follows that as evil has lasted a long time, good must now be close at hand.”",
+        "“There is no book so bad that it does not have something good in it.”",
+        "“The truth may be stretched, but it will never break, and it will always surface above lies, as oil floats on water.”",
+        "“Until death, it is all life.”",
+        "“One man is no more than another, if he does no more than another.”",
+        "“He who loses wealth loses much; he who loses a friend loses more; but he who loses his courage loses all.”",
+        "“I know who I am, and who I may be, if I choose.”"
+    ];
+
+    // RENDER FUNCTIONS
+    const grid = document.getElementById('contentGrid');
+
+    function renderCards(data) {
+        grid.innerHTML = ''; // Clear current
+        if(data.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; font-style: italic; color: var(--secondary-parchment); font-size: 1.5rem;">No scrolls found in the royal archives matching thy query.</p>';
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Abbreviate Category for the seal if needed
+            let sealText = item.category;
+            
+            card.innerHTML = `
+                <div class="category-seal">${sealText}</div>
+                <h3>${item.title}</h3>
+                <p>${item.content}</p>
+                <div style="font-size: 0.9rem; color: #5d4037; margin-top: 15px; font-family: 'MedievalSharp'; border-top: 1px dashed #8b4513; padding-top: 5px;">
+                    <strong>Tags:</strong> ${item.tags.join(', ')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // SEARCH & FILTER LOGIC
+    function searchDatabase() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = database.filter(item => 
+            item.title.toLowerCase().includes(query) || 
+            item.content.toLowerCase().includes(query) ||
+            item.tags.some(tag => tag.toLowerCase().includes(query))
+        );
+        renderCards(filtered);
+    }
+
+    function filterContent(category) {
+        // Reset search input
+        document.getElementById('searchInput').value = '';
+        
+        if (category === 'all') {
+            renderCards(database);
+        } else {
+            const filtered = database.filter(item => item.category === category);
+            renderCards(filtered);
+        }
+    }
+
+    function quickSearch(term) {
+        document.getElementById('searchInput').value = term;
+        searchDatabase();
+    }
+
+    // QUOTE LOGIC
+    function newQuote() {
+        const display = document.getElementById('quoteDisplay');
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        display.style.opacity = 0;
+        
+        setTimeout(() => {
+            display.innerText = quotes[randomIndex];
+            display.style.opacity = 1;
+        }, 300); // fade transition
+    }
+
+    // Init
+    window.onload = () => {
+        renderCards(database);
+        // Add fade in effect for quote
+        document.getElementById('quoteDisplay').style.transition = "opacity 0.3s";
+    };
+
+</script>
+
+</body>
+</html>
